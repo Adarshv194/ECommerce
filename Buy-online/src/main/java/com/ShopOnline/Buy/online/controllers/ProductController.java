@@ -3,6 +3,7 @@ package com.ShopOnline.Buy.online.controllers;
 import com.ShopOnline.Buy.online.entities.Seller;
 import com.ShopOnline.Buy.online.models.ProductModel;
 import com.ShopOnline.Buy.online.models.ProductUpdateModel;
+import com.ShopOnline.Buy.online.models.ProductUpdateVariationModel;
 import com.ShopOnline.Buy.online.models.ProductVariationModel;
 import com.ShopOnline.Buy.online.repos.ProductVariationRepository;
 import com.ShopOnline.Buy.online.services.ProductDaoService;
@@ -44,7 +45,7 @@ public class ProductController {
     }
 
     @PatchMapping(value = "/update-product/{productId}")
-    public ResponseEntity<Object> updateProduct(@PathVariable Long productId, ProductUpdateModel productModel) {
+    public ResponseEntity<Object> updateProduct(@PathVariable Long productId, @RequestBody ProductUpdateModel productModel) {
         Seller seller = userDaoService.getLoggedInSeller();
         String message = productDaoService.updateProduct(productId, productModel, seller);
 
@@ -52,10 +53,11 @@ public class ProductController {
     }
 
     @PatchMapping(value = "/update-product-variation/{productVariationId}")
-    public ResponseEntity<Object> updateProductvariation(@PathVariable Long productVariationId, ProductVariationModel productVariationModel) {
+    public ResponseEntity<Object> updateProductvariation(@PathVariable Long productVariationId, @RequestBody ProductUpdateVariationModel productUpdateVariationModel) {
         Seller seller = userDaoService.getLoggedInSeller();
+        String message = productDaoService.updateProductVariaiton(productVariationId, productUpdateVariationModel, seller);
 
-
+        return new ResponseEntity<>(message, HttpStatus.CREATED);
     }
 
     }

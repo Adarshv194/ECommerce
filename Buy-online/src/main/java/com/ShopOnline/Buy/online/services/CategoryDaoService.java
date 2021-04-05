@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,6 +48,21 @@ public class CategoryDaoService {
             ModelMapper mapper = new ModelMapper();
             List<Category> categoryList = mapper.map(categoryModelList,listType);
 
+            List<String> modelNames = new ArrayList<>();
+            categoryList.forEach(category -> {
+                modelNames.add(category.getName());
+            });
+
+            List<String> categoryNames = categoryRepository.checkForCategoryName(pCategory.getCategoryId());
+            for(String categoryName : categoryNames) {
+
+                for(String name : modelNames) {
+                    if(categoryName.equals(name)) {
+                        throw new BadRequestException("can't add the Sub-category " + name + " as it is already added in the database");
+                    }
+                }
+            }
+
             categoryList.forEach(category -> category.setParentCategory(pCategory));
 
             categoryRepository.saveAll(categoryList);
@@ -62,6 +78,12 @@ public class CategoryDaoService {
         Optional<Category> categoryOptional = categoryRepository.findByName(categoryName);
 
         if(categoryOptional.isPresent()) {
+
+            Optional<Category> categoryNameOptional = categoryRepository.findByName(categoryModel.getName());
+            if(categoryNameOptional.isPresent()) {
+                throw new BadRequestException("Can't update the category with name " + categoryModel.getName() + " as there is already a categroy with that name");
+            }
+
             Category category = categoryOptional.get();
 
             category.setName(categoryModel.getName());

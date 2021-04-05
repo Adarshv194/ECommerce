@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.*;
 
 @Service
@@ -60,6 +61,7 @@ public class ProductDaoService {
                     product.setCancellable(false);
                     product.setReturnable(false);
                     product.setActive(false);
+                    product.setDeleted(false);
 
                     productRepository.save(product);
 
@@ -238,8 +240,10 @@ public class ProductDaoService {
             }
 
             if(productModel.getProductName() != null) {
+                System.out.println("called");
                 String productName = productModel.getProductName();
                 String checkProductName = productRepository.checkForUniqueness(productName,product.getBrand(),product.getCategory().getCategoryId(),seller.getUserId());
+
 
                 if(productName.equals(checkProductName)) {
                     throw new BadRequestException("As there is another product listed by you with name " + checkProductName + " can't update, Please try some other name");
@@ -259,6 +263,8 @@ public class ProductDaoService {
             if(productModel.getReturnable() != null) {
                 product.setReturnable(productModel.getReturnable());
             }
+
+            productRepository.save(product);
 
             return "Product updated successfully";
         }
@@ -285,7 +291,7 @@ public class ProductDaoService {
             }
 
             if(productVariationModel.getVariantName() != null) {
-                List<ProductVariation> productVariationList = productVariationRepository.checkForProductvariationWithNameAndProductId(productVariationModel.getVariantName(), productVariationId);
+                List<ProductVariation> productVariationList = productVariationRepository.checkForProductvariationWithNameAndProductId(productVariationModel.getVariantName(), productVariation.getProduct().getProductId());
                 if(productVariationList.size() != 0) {
                     throw new BadRequestException("Can't update the product variation as there exist a product variation with variation name " + productVariationModel.getVariantName() + " ");
                 }
@@ -293,7 +299,7 @@ public class ProductDaoService {
                 productVariation.setVariantName(productVariationModel.getVariantName());
             }
 
-            if(productVariationModel.getProductAttributes() != null) {
+            if(productVariationModel.getProductAttributes().size() > 0) {
                 Map<String, Object> productAttributesClient = productVariationModel.getProductAttributes();
 
                 List<String> allProductVariationAttributes = productVariationRepository.findAllProductVariationAttributes(productVariation.getProduct().getProductId());
@@ -302,7 +308,7 @@ public class ProductDaoService {
 
                 for(String productAttributes : allProductVariationAttributes) {
                     Map<String, Object> map = hashMapCoverter.convertToEntityAttribute(productAttributes);
-                    if(map.equals(productVariation.getProductAttributes())) {
+                    if(map.equals(productVariationModel.getProductAttributes())) {
                         throw new BadRequestException("Can't update the product variation with these product attributes , Please try some other varaition");
                     }
                 }
@@ -312,7 +318,17 @@ public class ProductDaoService {
                 }
             }
 
-            if
+            if(productVariationModel.getQuantityAvailable() != null) {
+                productVariation.setQuantityAvailable(productVariationModel.getQuantityAvailable());
+            }
+
+            if(productVariationModel.getPrice() != null) {
+                productVariation.setPrice(productVariationModel.getPrice());
+            }
+
+            productVariationRepository.save(productVariation);
+
+            return "Product variation gets updated";
         }
         else {
             throw new ResourceNotFoundException("Invalid product variation id, No record found with the product variation id " + productVariationId + " ");
@@ -354,6 +370,75 @@ public class ProductDaoService {
         }
 
         return true;
+    }
+
+    @Transactional
+    public String activateProduct(Long productId) {
+        Optional<Product> productOptional = productRepository.findById(productId);
+        if(productOptional.isPresent()) {
+            Product product = productOptional.get();
+            if(product.getActive() == false) {
+                System.out.println("Called");
+                System.out.println(product.getDeleted());
+                if(product.getDeleted() == false) {
+                    product.setActive(true);
+
+                    productRepository.save(product);
+
+                    SimpleMailMessage mailMessage = new SimpleMailMessage();
+                    mailMessage.setTo(product.getSeller().getEmail());
+                    mailMessage.setFrom("adarshv193@gmail.com");
+                    mailMessage.setSubject("Product Activated");
+                    mailMessage.setText("Your product " + product.getProductName() + " has been activated by our team ");
+                    emailSenderService.sendEmail(mailMessage);
+
+                    return "Product with " + productId + " is activated";
+                }
+                else {
+                    return "Can't activate the product " + product.getProductName() + " as it is deleted";
+                }
+            }
+            else {
+                return "The product " + product.getProductName() + " is already activated";
+            }
+        }
+        else {
+            throw new ResourceNotFoundException("Invalid product ID, There is not product listed with product ID " + productId + " ");
+        }
+    }
+
+    @Transactional
+    public String deActivatedProduct(Long productId) {
+        Optional<Product> productOptional = productRepository.findById(productId);
+        if(productOptional.isPresent()) {
+            Product product = productOptional.get();
+            if(product.getActive() == true) {
+
+                if(product.getDeleted() == false) {
+                    product.setActive(false);
+
+                    productRepository.save(product);
+
+                    SimpleMailMessage mailMessage = new SimpleMailMessage();
+                    mailMessage.setTo(product.getSeller().getEmail());
+                    mailMessage.setFrom("adarshv193@gmail.com");
+                    mailMessage.setSubject("Product Deactivated");
+                    mailMessage.setText("Your product " + product.getProductName() + " has been deactivated by our team ");
+                    emailSenderService.sendEmail(mailMessage);
+
+                    return "Product with " + productId + " is deactivated";
+                }
+                else {
+                    return "Can't deactivate product " + product.getProductName() + " as it is deleted";
+                }
+            }
+            else {
+                return "Product " + product.getProductName() + " is already deactivated";
+            }
+        }
+        else {
+            throw new ResourceNotFoundException("Invalid product ID, No product found with the product ID " + productId + " ");
+        }
     }
 
 }
