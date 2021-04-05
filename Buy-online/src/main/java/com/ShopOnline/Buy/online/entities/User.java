@@ -1,5 +1,6 @@
 package com.ShopOnline.Buy.online.entities;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.annotation.CreatedDate;
 
@@ -11,6 +12,7 @@ import java.util.Set;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
+@JsonFilter("userfilter")
 public class User {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonIgnore

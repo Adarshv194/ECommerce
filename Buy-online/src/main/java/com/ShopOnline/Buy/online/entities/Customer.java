@@ -1,10 +1,13 @@
 package com.ShopOnline.Buy.online.entities;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
+
 import javax.persistence.Entity;
 import javax.persistence.PrimaryKeyJoinColumn;
 
 @Entity
 @PrimaryKeyJoinColumn(name = "userId")
+@JsonFilter("userfilter")
 public class Customer extends User {
     private String contact;
 

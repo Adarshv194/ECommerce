@@ -9,8 +9,14 @@ import com.ShopOnline.Buy.online.models.CustomerReigisterModel;
 import com.ShopOnline.Buy.online.repos.RoleRepository;
 import com.ShopOnline.Buy.online.repos.UserRepository;
 import com.ShopOnline.Buy.online.security.GrantedAuthorityImpl;
+import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -272,5 +278,37 @@ public class UserDaoService {
         AppUser appUser = (AppUser) authentication.getPrincipal();
         String username = appUser.getUsername();
         return (Seller) userRepository.findByUsernameIgnoreCase(username).get();
+    }
+
+    public MappingJacksonValue getAllCustomers(String page, String size) {
+        Pageable pageable = PageRequest.of(Integer.parseInt(page),Integer.parseInt(size));
+
+        List<Customer> allCustomers = userRepository.findAllCustomers(pageable);
+
+        SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("userId","email","firstName","middleName","lastName",
+                "isActive","isNonLocked","isEnabled","isDeleted");
+
+        FilterProvider filters = new SimpleFilterProvider().addFilter("userfilter",filter);
+
+        MappingJacksonValue mapping = new MappingJacksonValue(allCustomers);
+        mapping.setFilters(filters);
+
+        return mapping;
+    }
+
+    public MappingJacksonValue getAllSellers(String page, String size) {
+        Pageable pageable = PageRequest.of(Integer.parseInt(page), Integer.parseInt(size));
+
+        List<Seller> allSellers = userRepository.findAllSellers(pageable);
+
+        SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("userId","firstName","middleName","lastName",
+                "email","companyName","addressSet","companyContact","isActive","isNonLocked","isEnabled");
+
+        FilterProvider filters = new SimpleFilterProvider().addFilter("userfilter",filter);
+
+        MappingJacksonValue mapping = new MappingJacksonValue(allSellers);
+        mapping.setFilters(filters);
+
+        return mapping;
     }
 }
