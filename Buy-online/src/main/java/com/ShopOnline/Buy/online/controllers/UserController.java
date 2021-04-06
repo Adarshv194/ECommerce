@@ -2,9 +2,11 @@ package com.ShopOnline.Buy.online.controllers;
 
 import com.ShopOnline.Buy.online.entities.Customer;
 import com.ShopOnline.Buy.online.exceptions.BadRequestException;
-import com.ShopOnline.Buy.online.models.CustomerReigisterModel;
-import com.ShopOnline.Buy.online.models.Email;
+import com.ShopOnline.Buy.online.models.*;
 import com.ShopOnline.Buy.online.services.UserDaoService;
+import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -77,5 +79,78 @@ public class UserController {
     @RequestMapping(value = "/request-actToken",method = {RequestMethod.POST})
     public String resendActivationToken(@RequestBody Email email) {
         return userDaoService.resendActivationToken(email.getEmail());
+    }
+
+    @GetMapping(value = "/customer-home-profile")
+    public MappingJacksonValue customerHomeProfile() {
+        Customer customer = userDaoService.getLoggedInCustomer();
+
+        SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("userId","firstName","lastName",
+                "isActive","contact");
+
+        FilterProvider filters = new SimpleFilterProvider().addFilter("userfilter",filter);
+
+        MappingJacksonValue mapping = new MappingJacksonValue(customer);
+        mapping.setFilters(filters);
+
+        return mapping;
+    }
+
+    @GetMapping(value = "/customer-home-profile-address")
+    public MappingJacksonValue customerAddress() {
+        Customer customer = userDaoService.getLoggedInCustomer();
+
+        SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("addressSet");
+
+        FilterProvider filters = new SimpleFilterProvider().addFilter("userfilter",filter);
+
+        MappingJacksonValue mapping = new MappingJacksonValue(customer);
+        mapping.setFilters(filters);
+
+        return mapping;
+    }
+
+    @PatchMapping(value = "/customer-profile-update")
+    public ResponseEntity<Object> updateCustomerProfile(@RequestBody CustomerUpdateModel customerUpdateModel) {
+        Customer customer = userDaoService.getLoggedInCustomer();
+
+        String message = userDaoService.updateCustomerProfile(customerUpdateModel, customer.getUserId());
+
+        return new ResponseEntity<>(message,HttpStatus.CREATED);
+    }
+
+    @PostMapping(value = "/update-password")
+    public ResponseEntity<Object> updateCustomerPassword(@Valid @RequestBody UpdatePasswordModel updatePasswordModel) {
+        Customer customer = userDaoService.getLoggedInCustomer();
+
+        String message = userDaoService.updateCustomerPassword(updatePasswordModel, customer.getUsername());
+
+        return new ResponseEntity<>(message,HttpStatus.CREATED);
+    }
+
+    @PostMapping(value = "/customer/add-address")
+    public ResponseEntity<Object> customerAddAddress(@Valid @RequestBody AddressModel addressModel) {
+        Customer customer = userDaoService.getLoggedInCustomer();
+        String message = userDaoService.customerAddAddress(addressModel, customer.getUserId());
+
+        return new ResponseEntity<>(message,HttpStatus.CREATED);
+    }
+
+    @DeleteMapping(value = "/customer/delete-address/{addressId}")
+    public ResponseEntity<Object> customerDeleteAddress(@PathVariable Long addressId) {
+        Customer customer = userDaoService.getLoggedInCustomer();
+
+        String message = userDaoService.customerDeleteAddress(addressId, customer.getUserId());
+
+        return new ResponseEntity<>(message,HttpStatus.CREATED);
+    }
+
+    @PatchMapping(value = "/customer/update-address/addressId}")
+    public ResponseEntity<Object> customerUpdateAddress(@PathVariable Long addressId, @RequestBody AddressUpdateModel addressUpdateModel) {
+        Customer customer = userDaoService.getLoggedInCustomer();
+
+        String message = userDaoService.customerUpdateAddress(customer.getUserId(), addressId, addressUpdateModel);
+
+        return new ResponseEntity<>(message,HttpStatus.CREATED);
     }
 }

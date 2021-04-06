@@ -35,5 +35,52 @@ public class ResetPasswordToken {
         token = UUID.randomUUID().toString();
     }
 
+    public Long getTokenId() {
+        return tokenId;
+    }
 
+    public void setTokenId(Long tokenId) {
+        this.tokenId = tokenId;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public Date getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(Date createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public Date getExpiryDate() {
+        return expiryDate;
+    }
+
+    public void setExpiryDate(Date expiryDate) {
+        this.expiryDate = expiryDate;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public void calculate() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime((new Timestamp(calendar.getTime().getTime())));
+        createdDate = new Date(calendar.getTime().getTime());
+        calendar.add(Calendar.HOUR,2);
+        expiryDate = new Date(calendar.getTime().getTime());
+        token = UUID.randomUUID().toString();
+    }
 }

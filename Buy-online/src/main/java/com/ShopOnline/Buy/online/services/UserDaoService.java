@@ -2,10 +2,10 @@ package com.ShopOnline.Buy.online.services;
 
 import com.ShopOnline.Buy.online.entities.*;
 import com.ShopOnline.Buy.online.exceptions.*;
-import com.ShopOnline.Buy.online.models.SellerRegisterModel;
+import com.ShopOnline.Buy.online.models.*;
+import com.ShopOnline.Buy.online.repos.AddressRepository;
 import com.ShopOnline.Buy.online.repos.ConfirmationTokenRepository;
 import com.ShopOnline.Buy.online.tokens.ConfirmationToken;
-import com.ShopOnline.Buy.online.models.CustomerReigisterModel;
 import com.ShopOnline.Buy.online.repos.RoleRepository;
 import com.ShopOnline.Buy.online.repos.UserRepository;
 import com.ShopOnline.Buy.online.security.GrantedAuthorityImpl;
@@ -37,6 +37,8 @@ public class UserDaoService {
     ConfirmationTokenRepository confirmationTokenRepository;
     @Autowired
     EmailSenderService emailSenderService;
+    @Autowired
+    AddressRepository addressRepository;
 
     BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -273,6 +275,13 @@ public class UserDaoService {
         return userRepository.findByUsernameIgnoreCase(username).get();
     }
 
+    public Customer getLoggedInCustomer() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        AppUser appUser = (AppUser) authentication.getPrincipal();
+        String username = appUser.getUsername();
+        return (Customer) userRepository.findByUsernameIgnoreCase(username).get();
+    }
+
     public Seller getLoggedInSeller() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         AppUser appUser = (AppUser) authentication.getPrincipal();
@@ -310,5 +319,178 @@ public class UserDaoService {
         mapping.setFilters(filters);
 
         return mapping;
+    }
+
+    public String updateCustomerProfile(CustomerUpdateModel customerUpdateModel, Long customerId) {
+        Optional<User> userOptional = userRepository.findById(customerId);
+        if(userOptional.isPresent()) {
+            Customer customer = (Customer) userOptional.get();
+
+            if(customerUpdateModel.getEmail() != null) {
+                throw new BadRequestException("Can't update the email of the customer");
+            }
+
+            if(customerUpdateModel.getFirstName() != null) {
+                customer.setFirstName(customerUpdateModel.getFirstName());
+            }
+
+            if(customerUpdateModel.getMiddleName() != null) {
+                customer.setMiddleName(customerUpdateModel.getMiddleName());
+            }
+
+            if(customerUpdateModel.getLastName() != null) {
+                customer.setLastName(customerUpdateModel.getLastName());
+            }
+
+            if(customer.getContact() != null) {
+                if(!customerUpdateModel.getContact().matches("^[0-9]*$")) {
+                    throw new BadRequestException("Phone number must contains numbers only");
+                }
+            }
+
+            userRepository.save(customer);
+
+            return "Profile updated successfully";
+        }
+        else {
+            throw new UserNotFoundException("Invalid customer, Customer not found");
+        }
+    }
+
+    public String updateCustomerPassword(UpdatePasswordModel updatePasswordModel, String username) {
+        Optional<User> userOptional = userRepository.findByUsernameIgnoreCase(username);
+        if(userOptional.isPresent()) {
+            User user = userOptional.get();
+
+            String oldPassword = updatePasswordModel.getOldPassword();
+            if(passwordEncoder.matches(oldPassword,user.getPassword())) {
+
+                if(updatePasswordModel.getNewPassword().matches(updatePasswordModel.getConfirmPassword())) {
+                    String newPassword = updatePasswordModel.getNewPassword();
+                    user.setPassword(passwordEncoder.encode(newPassword));
+
+                    userRepository.save(user);
+
+                    SimpleMailMessage mailMessage = new SimpleMailMessage();
+                    mailMessage.setTo(user.getEmail());
+                    mailMessage.setFrom("adarshv193@gmail.com");
+                    mailMessage.setSubject("Password updated");
+                    mailMessage.setText("Your password has been changed, if it's not done by you kindly contact the administration");
+
+                    emailSenderService.sendEmail(mailMessage);
+
+                    return "Password updated successfully";
+                }
+                else {
+                    throw new BadRequestException("New password and confirm password does not matches");
+                }
+            }
+            else {
+                throw new BadRequestException("Old password does not matches with your credentials saved in our database, Please try again with correct credentials or reset your password through forgot-password");
+            }
+        }
+        else {
+            throw new UserNotFoundException("Invalid customer, Customer not found");
+        }
+    }
+
+    @Transactional
+    public String customerAddAddress(AddressModel addressModel, Long customerId) {
+        Optional<User> customerOptional = userRepository.findById(customerId);
+        if(customerOptional.isPresent()) {
+            Customer customer = (Customer) customerOptional.get();
+
+            ModelMapper mapper = new ModelMapper();
+            Address address = mapper.map(addressModel, Address.class);
+            address.setUser(customer);
+
+            userRepository.save(customer);
+
+            return "Address added";
+        }
+        else {
+            throw new UserNotFoundException("Invalid customer, Customer not found");
+        }
+    }
+    
+    @Transactional
+    public String customerDeleteAddress(Long addressId, Long customerId) {
+        Optional<User> userOptional = userRepository.findById(customerId);
+        if(userOptional.isPresent()) {
+            Customer customer = (Customer) userOptional.get();
+
+            Optional<Address> addressOptional = addressRepository.findById(addressId);
+            if(addressOptional.isPresent()) {
+                Address address = addressOptional.get();
+                
+                if(!address.getUser().getUserId().equals(customer.getUserId())) {
+                    throw new BadRequestException("Address not associated with the logged in customer can't delete the address");
+                }
+                
+                addressRepository.delete(address);
+                
+                return "Address deleted with id " + addressId + " from the database";
+            }
+            else {
+                throw new BadRequestException("Invalid address ID, No address found in the database");
+            }
+
+        }
+        else {
+            throw new UserNotFoundException("Invalid customer, Customer not found");
+        }
+    }
+    
+    @Transactional
+    public String customerUpdateAddress(Long customerId, Long addressId, AddressUpdateModel addressUpdateModel) {
+        Optional<User> userOptional = userRepository.findById(customerId);
+        if(userOptional.isPresent()) {
+            Customer customer = (Customer) userOptional.get();
+
+            Optional<Address> addressOptional = addressRepository.findById(addressId);
+            if(addressOptional.isPresent()) {
+                Address address = addressOptional.get();
+                
+                if(address.getUser().getUserId().equals(customer.getUserId())) {
+                    
+                    if(addressUpdateModel.getAddressLine() != null) {
+                        address.setAddressLine(addressUpdateModel.getAddressLine());
+                    }
+                    
+                    if(addressUpdateModel.getCountry() != null) {
+                        address.setCountry(addressUpdateModel.getCountry());
+                    }
+                    
+                    if(addressUpdateModel.getState() != null) {
+                        address.setState(addressUpdateModel.getState());
+                    }
+                    
+                    if(addressUpdateModel.getCity() != null) {
+                        address.setCity(addressUpdateModel.getCity());
+                    }
+                    
+                    if(addressUpdateModel.getZipCode() != null) {
+                        address.setZipCode(addressUpdateModel.getZipCode());
+                    }
+                    
+                    if(addressUpdateModel.getLabel() != null) {
+                        address.setLabel(addressUpdateModel.getLabel());
+                    }
+                    
+                    addressRepository.save(address);
+                    
+                    return "Address updated with id " + addressId + " from the database";
+                }
+                else {
+                    throw new BadRequestException("Address not associated with the logged in customer, can;'t update the address");
+                }
+            }
+            else {
+                throw new BadRequestException("Invalid address ID, No address found in the database");
+            }
+        }
+        else {
+            throw new UserNotFoundException("Invalid customer, Customer not found");
+        }
     }
 }

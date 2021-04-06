@@ -6,20 +6,31 @@ import com.ShopOnline.Buy.online.validations.PasswordMatches;
 import javax.validation.constraints.NotNull;
 
 @PasswordMatches
-public class ForgotPasswordModel {
+public class UpdatePasswordModel {
+    @NotNull
+    private String oldPassword;
+
     @Password
     @NotNull
-    private String password;
+    private String newPassword;
 
     @NotNull
     private String confirmPassword;
 
-    public String getPassword() {
-        return password;
+    public String getOldPassword() {
+        return oldPassword;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setOldPassword(String oldPassword) {
+        this.oldPassword = oldPassword;
+    }
+
+    public String getNewPassword() {
+        return newPassword;
+    }
+
+    public void setNewPassword(String newPassword) {
+        this.newPassword = newPassword;
     }
 
     public String getConfirmPassword() {
