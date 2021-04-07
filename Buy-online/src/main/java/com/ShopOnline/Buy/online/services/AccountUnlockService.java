@@ -28,8 +28,8 @@ public class AccountUnlockService {
             mailMessage.setTo(user.getEmail());
             mailMessage.setFrom("adarshv193@gmail.com");
             mailMessage.setSubject("Unlock your account");
-            mailMessage.setText("To unlock your account , please click here :" +
-                    "http://localhost:8080/do-unlock?username="+username);
+            mailMessage.setText("To unlock your account , please click here :"
+                    +"http://localhost:8080/do-unlock?username="+username);
 
             emailSenderService.sendEmail(mailMessage);
 

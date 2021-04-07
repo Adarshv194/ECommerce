@@ -15,7 +15,6 @@ import java.util.Set;
 @JsonFilter("userfilter")
 public class User {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonIgnore
     private Long userId;
     private String firstName;
     private String middleName;

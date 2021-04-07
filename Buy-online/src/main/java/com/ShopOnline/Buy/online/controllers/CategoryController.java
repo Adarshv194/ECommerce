@@ -3,6 +3,7 @@ package com.ShopOnline.Buy.online.controllers;
 import com.ShopOnline.Buy.online.entities.category.Category;
 import com.ShopOnline.Buy.online.entities.category.CategoryMetaDataField;
 import com.ShopOnline.Buy.online.models.CategoryModel;
+import com.ShopOnline.Buy.online.models.FilterCategoryModel;
 import com.ShopOnline.Buy.online.services.CategoryDaoService;
 import com.ShopOnline.Buy.online.services.CategoryMetadataFieldService;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
@@ -50,9 +51,12 @@ public class CategoryController {
     @GetMapping(value = "/get-all-categories")
     public MappingJacksonValue getAllCategory(@RequestHeader(defaultValue = "0") String page, @RequestHeader(defaultValue = "10") String size) {
 
-        SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("name", "categoryId");
+        SimpleBeanPropertyFilter filter1 = SimpleBeanPropertyFilter.filterOutAllExcept("name", "categoryId");
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("categoryfilter", filter);
+        SimpleBeanPropertyFilter filter2 = SimpleBeanPropertyFilter.filterOutAllExcept("categoryMetaDataField","fieldvalues");
+
+        FilterProvider filters = new SimpleFilterProvider().addFilter("categoryfilter", filter1)
+                .addFilter("categorymdfv",filter2);
 
         MappingJacksonValue mapping = new MappingJacksonValue(categoryDaoService.getAllCategory(page, size));
         mapping.setFilters(filters);
@@ -63,9 +67,12 @@ public class CategoryController {
     @GetMapping(value = "/get-category/{categoryId}")
     public MappingJacksonValue getCategory(@PathVariable Long categoryId) {
 
-        SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("name", "categoryId");
+        SimpleBeanPropertyFilter filter1 = SimpleBeanPropertyFilter.filterOutAllExcept("name", "categoryId");
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("categoryfilter", filter);
+        SimpleBeanPropertyFilter filter2 = SimpleBeanPropertyFilter.filterOutAllExcept("categoryMetaDataField","fieldvalues");
+
+        FilterProvider filters = new SimpleFilterProvider().addFilter("categoryfilter", filter1)
+                .addFilter("categorymdfv",filter2);
 
         MappingJacksonValue mapping = new MappingJacksonValue(categoryDaoService.getCategory(categoryId));
         mapping.setFilters(filters);
@@ -122,6 +129,22 @@ public class CategoryController {
         FilterProvider filters = new SimpleFilterProvider().addFilter("categoryfilter", filter);
 
         MappingJacksonValue mapping = new MappingJacksonValue(categoryMetadataFieldService.getAllMetadataFieldValues(page, size));
+        mapping.setFilters(filters);
+
+        return mapping;
+    }
+
+    @GetMapping(value = "/seller/get-all-categories")
+    public MappingJacksonValue sellerGetAllCategory() {
+
+        SimpleBeanPropertyFilter filter1 = SimpleBeanPropertyFilter.filterOutAllExcept("name", "categoryId");
+
+        SimpleBeanPropertyFilter filter2 = SimpleBeanPropertyFilter.filterOutAllExcept("categoryMetaDataField","fieldvalues");
+
+        FilterProvider filters = new SimpleFilterProvider().addFilter("categoryfilter", filter1)
+                .addFilter("categorymdfv",filter2);
+
+        MappingJacksonValue mapping = new MappingJacksonValue(categoryDaoService.sellerGetAllCategory());
         mapping.setFilters(filters);
 
         return mapping;

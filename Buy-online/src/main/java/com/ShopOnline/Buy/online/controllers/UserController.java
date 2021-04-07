@@ -27,7 +27,7 @@ public class UserController {
     @Autowired
     TokenStore tokenStore;
 
-    @GetMapping(value = "/doLogout")
+    @PostMapping(value = "/doLogout")
     public String doLogout(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
         if(authHeader != null) {
@@ -44,12 +44,12 @@ public class UserController {
 
     //////////////////////////////////////////////// ADMIN - API'S ////////////////////////////////////////////
 
-    @GetMapping(value = "/get-all-customers")
+    @GetMapping(value = "/admin/get-all-customers")
     public MappingJacksonValue getAllCustomers(@RequestHeader(defaultValue = "0") String page, @RequestHeader(defaultValue = "10") String size ) {
         return userDaoService.getAllCustomers(page, size);
     }
 
-    @GetMapping(value = "/get-all-sellers")
+    @GetMapping(value = "/admin/get-all-sellers")
     public MappingJacksonValue getAllSellers(@RequestHeader(defaultValue = "0") String page, @RequestHeader(defaultValue = "10") String size) {
         return userDaoService.getAllSellers(page, size);
     }
@@ -86,7 +86,7 @@ public class UserController {
         Customer customer = userDaoService.getLoggedInCustomer();
 
         SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("userId","firstName","lastName",
-                "isActive","contact");
+                "active","contact");
 
         FilterProvider filters = new SimpleFilterProvider().addFilter("userfilter",filter);
 
@@ -119,9 +119,10 @@ public class UserController {
         return new ResponseEntity<>(message,HttpStatus.CREATED);
     }
 
-    @PostMapping(value = "/customer-update-password")
+    @PatchMapping(value = "/customer-update-password")
     public ResponseEntity<Object> updateCustomerPassword(@Valid @RequestBody UpdatePasswordModel updatePasswordModel) {
         Customer customer = userDaoService.getLoggedInCustomer();
+        System.out.println("called");
 
         String message = userDaoService.updateCustomerPassword(updatePasswordModel, customer.getUsername());
 
@@ -145,7 +146,7 @@ public class UserController {
         return new ResponseEntity<>(message,HttpStatus.CREATED);
     }
 
-    @PatchMapping(value = "/customer/update-address/addressId}")
+    @PatchMapping(value = "/customer/update-address/{addressId}")
     public ResponseEntity<Object> customerUpdateAddress(@PathVariable Long addressId, @RequestBody AddressUpdateModel addressUpdateModel) {
         Customer customer = userDaoService.getLoggedInCustomer();
 

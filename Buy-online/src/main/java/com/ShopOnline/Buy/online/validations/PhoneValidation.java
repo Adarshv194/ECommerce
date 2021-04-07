@@ -14,8 +14,14 @@ public class PhoneValidation implements ConstraintValidator<Phone,String> {
         if(phone == null) {
             return false;
         }
-        if(phone.matches("^[0-9]*$"))
-            return true;
-        return false;
+        if(phone.matches("^[0-9]*$")) {
+            if(phone.length() == 10) {
+                return true;
+            }
+            return false;
+        }
+        else {
+            return false;
+        }
     }
 }

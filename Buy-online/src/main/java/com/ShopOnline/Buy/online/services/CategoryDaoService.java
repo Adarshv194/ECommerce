@@ -5,6 +5,8 @@ import com.ShopOnline.Buy.online.entities.category.CategoryMetaDataFieldValues;
 import com.ShopOnline.Buy.online.exceptions.BadRequestException;
 import com.ShopOnline.Buy.online.exceptions.ResourceNotFoundException;
 import com.ShopOnline.Buy.online.models.CategoryModel;
+import com.ShopOnline.Buy.online.models.FilterCategoryModel;
+import com.ShopOnline.Buy.online.repos.CategoryMetadataFieldValuesRepository;
 import com.ShopOnline.Buy.online.repos.CategoryRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -14,15 +16,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.logging.Filter;
 
 @Service
 public class CategoryDaoService {
 
     @Autowired
     CategoryRepository categoryRepository;
+    @Autowired
+    CategoryMetadataFieldValuesRepository categoryMetadataFieldValuesRepository;
 
     public String addParentCategory(CategoryModel categoryModel) {
         Optional<Category> categoryOptional = categoryRepository.findByName(categoryModel.getName());
@@ -35,7 +38,7 @@ public class CategoryDaoService {
 
             categoryRepository.save(category);
 
-            return "New category added in the database with name " + categoryModel.getName() + " ";
+            return "New category added in the database with name " + categoryModel.getName() + " with id " + category.getCategoryId() + " ";
         }
     }
 
@@ -97,16 +100,99 @@ public class CategoryDaoService {
         }
     }
 
-    public List<Category> getAllCategory(String page, String size) {
+    public List<FilterCategoryModel> getAllCategory(String page, String size) {
         Pageable pageable = PageRequest.of(Integer.parseInt(page),Integer.parseInt(size));
 
-        return categoryRepository.findAll(pageable);
+        List<Category> categoryList = categoryRepository.findAll(pageable);
+        List<FilterCategoryModel> filterCategoryModelList = new ArrayList<>();
+
+        for(Category toReturnable : categoryList) {
+            List<CategoryMetaDataFieldValues> toReturnableFV = categoryMetadataFieldValuesRepository.findByCategoryId(toReturnable.getCategoryId());
+
+            FilterCategoryModel filterCategoryModelObj = new FilterCategoryModel();
+
+            filterCategoryModelObj.setCategory(toReturnable);
+            filterCategoryModelObj.setCategoryMetaDataFieldValuesList(toReturnableFV);
+
+            filterCategoryModelList.add(filterCategoryModelObj);
+        }
+
+        return filterCategoryModelList;
     }
 
-    public Category getCategory(Long categoryId) {
+    public List<FilterCategoryModel> sellerGetAllCategory() {
+        List<Category> categoryList = categoryRepository.findAllRootLevelCategory();
+        List<FilterCategoryModel> filterCategoryModelList = new ArrayList<>();
+
+        for(Category toReturnable : categoryList) {
+            List<CategoryMetaDataFieldValues> toReturnableFV = categoryMetadataFieldValuesRepository.findByCategoryId(toReturnable.getCategoryId());
+
+            FilterCategoryModel filterCategoryModelObj = new FilterCategoryModel();
+
+            filterCategoryModelObj.setCategory(toReturnable);
+            filterCategoryModelObj.setCategoryMetaDataFieldValuesList(toReturnableFV);
+
+            filterCategoryModelList.add(filterCategoryModelObj);
+        }
+
+        return filterCategoryModelList;
+    }
+
+    public List<FilterCategoryModel> getCategory(Long categoryId) {
+
         Optional<Category> categoryOptional = categoryRepository.findById(categoryId);
         if(categoryOptional.isPresent()) {
-            return categoryOptional.get();
+            Category category = categoryOptional.get();
+
+            List<Category> categoryList = new ArrayList<>();
+
+            if(category.getParentCategory() == null) {
+                categoryList.add(category);
+
+                List<Category> subCategories = categoryRepository.getAllSubCategoriesWithId(category.getCategoryId());
+
+                List<FilterCategoryModel> filterCategoryModelList = new ArrayList<>();
+
+                    for(Category subCategory : subCategories) {
+                        categoryList.add(subCategory);
+                    }
+
+                for(Category toReturnable : categoryList) {
+                    List<CategoryMetaDataFieldValues> toReturnableFV = categoryMetadataFieldValuesRepository.findByCategoryId(toReturnable.getCategoryId());
+
+                    FilterCategoryModel filterCategoryModelObj = new FilterCategoryModel();
+
+                    filterCategoryModelObj.setCategory(toReturnable);
+                    filterCategoryModelObj.setCategoryMetaDataFieldValuesList(toReturnableFV);
+
+                    filterCategoryModelList.add(filterCategoryModelObj);
+                }
+
+                return filterCategoryModelList;
+            }
+            else {
+                categoryList.add(category);
+
+                List<Category> allParentCategoryList = categoryRepository.findAllParentCategoryWithSubCategoryId(category.getParentCategory().getCategoryId());
+                List<FilterCategoryModel> filterCategoryModelList = new ArrayList<>();
+
+                for(Category parentCategory : allParentCategoryList) {
+                    categoryList.add(parentCategory);
+                }
+
+                for(Category toReturnable : categoryList) {
+                    List<CategoryMetaDataFieldValues> toReturnableFV = categoryMetadataFieldValuesRepository.findByCategoryId(toReturnable.getCategoryId());
+
+                    FilterCategoryModel filterCategoryModelObj = new FilterCategoryModel();
+
+                    filterCategoryModelObj.setCategory(toReturnable);
+                    filterCategoryModelObj.setCategoryMetaDataFieldValuesList(toReturnableFV);
+
+                    filterCategoryModelList.add(filterCategoryModelObj);
+                }
+
+                return filterCategoryModelList;
+            }
         }
         else {
             throw new ResourceNotFoundException("Category not found with the ID " + categoryId + " ");
@@ -127,4 +213,5 @@ public class CategoryDaoService {
             throw new ResourceNotFoundException("Invalid category ID, no record found with the ID " + categoryId + " ");
         }
     }
+
 }

@@ -14,10 +14,10 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends CrudRepository<User, Long> {
 
-    @Query("from customer")
+    @Query("from Customer")
     List<Customer> findAllCustomers(Pageable pageable);
 
-    @Query("from seller")
+    @Query("from Seller")
     List<Seller> findAllSellers(Pageable pageable);
 
     Optional<User> findByUsernameIgnoreCase(String username);

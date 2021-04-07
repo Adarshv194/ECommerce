@@ -16,6 +16,9 @@ public interface CategoryMetadataFieldValuesRepository extends CrudRepository<Ca
 
     Optional<CategoryMetaDataFieldValues> findByCategory(Category category);
 
+    @Query(value = "select * from category_meta_data_field_values where category_category_id=:categoryId",nativeQuery = true)
+    List<CategoryMetaDataFieldValues> findByCategoryId(@Param("categoryId") Long categoryId);
+
     Optional<CategoryMetaDataFieldValues> findByCategoryMetaDataField(CategoryMetaDataField categoryMetaDataField);
 
     @Query(value = "select * from category_meta_data_field_values where category_category_id=:category_id and category_meta_data_field_category_meta_data_field_id=:category_mdf_id",nativeQuery = true)

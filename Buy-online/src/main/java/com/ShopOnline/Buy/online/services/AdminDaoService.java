@@ -31,7 +31,7 @@ public class AdminDaoService {
             Boolean checker = false;
 
             for(Role role : roleList) {
-                if(role.getAuthority().equals("USER")) {
+                if(role.getAuthority().equals("ROLE_USER")) {
                     checker = true;
                 }
             }
@@ -71,7 +71,8 @@ public class AdminDaoService {
             Boolean checker = false;
 
             for(Role role : roleList) {
-                if(role.getAuthority().equals("USER")) {
+                System.out.println(role.getAuthority());
+                if(role.getAuthority().equals("ROLE_USER")) {
                     checker = true;
                 }
             }
@@ -112,7 +113,7 @@ public class AdminDaoService {
             Boolean checker = false;
 
             for(Role role : roleList) {
-                if(role.getAuthority().equals("SELLER")) {
+                if(role.getAuthority().equals("ROLE_SELLER")) {
                     checker = true;
                 }
             }
@@ -154,7 +155,7 @@ public class AdminDaoService {
             Boolean checker = false;
 
             for(Role role : roleList) {
-                if(role.getAuthority().equals("SELLER")) {
+                if(role.getAuthority().equals("ROLE_SELLER")) {
                     checker = true;
                 }
             }

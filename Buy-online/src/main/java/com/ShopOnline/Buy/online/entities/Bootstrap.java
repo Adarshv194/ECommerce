@@ -22,7 +22,7 @@ public class Bootstrap implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        /*Role admin = new Role();
+/*        Role admin = new Role();
         admin.setRoleId(1l);
         admin.setAuthority("ROLE_ADMIN");
         roleRepository.save(admin);
@@ -47,5 +47,5 @@ public class Bootstrap implements ApplicationRunner {
 
         roleRepository.save(customer);
         roleRepository.save(seller);
-*/    }
+ */   }
 }

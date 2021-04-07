@@ -10,7 +10,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Phone {
 
-    String message() default "{Phone}";
+    String message() default "invalid format";
 
     Class<?>[] groups() default {};
 

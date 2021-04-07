@@ -43,9 +43,9 @@ public class LockAuthenticationManager implements ApplicationListener<AbstractAu
                     mailMessage.setTo(user.getEmail());
                     mailMessage.setFrom("adarshv193@gmail.com");
                     mailMessage.setSubject("Account Locked");
-                    mailMessage.setText("Your account has been locked due to multiple incorrect password attempts" +
-                            "Go to this link to unlock your account" +
-                            "http://localhost:8080/user-account-unlock/{username}");
+                    mailMessage.setText("Your account has been locked due to multiple incorrect password attempts " +
+                            "Go to this link to unlock your account"
+                            +"http://localhost:8080/user-account-unlock/{username}");
                     emailSenderService.sendEmail(mailMessage);
                 }
                 else {

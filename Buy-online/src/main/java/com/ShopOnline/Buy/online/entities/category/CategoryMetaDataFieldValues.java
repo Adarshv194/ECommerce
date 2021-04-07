@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 import javax.persistence.*;
 
 @Entity
-@JsonFilter("categoryfilter")
+@JsonFilter("categorymdfv")
 public class CategoryMetaDataFieldValues {
     @EmbeddedId
     private CategoryMetaDataFieldValuesID id = new CategoryMetaDataFieldValuesID();

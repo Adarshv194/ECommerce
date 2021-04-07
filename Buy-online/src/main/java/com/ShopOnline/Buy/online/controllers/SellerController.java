@@ -38,7 +38,7 @@ public class SellerController {
         Seller seller = userDaoService.getLoggedInSeller();
 
         SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("userId","firstName","lastName",
-                "isActive","companyContact","companyName","gst","addressSet");
+                "active","companyContact","companyName","gst","addressSet");
 
         FilterProvider filters = new SimpleFilterProvider().addFilter("userfilter",filter);
 
@@ -48,7 +48,7 @@ public class SellerController {
         return mapping;
     }
 
-    @PatchMapping(value = "seller-profile-update")
+    @PatchMapping(value = "/seller-profile-update")
     public ResponseEntity<Object> updateSellerProfile(@RequestBody SellerUpdateModel sellerUpdateModel) {
         Seller seller = userDaoService.getLoggedInSeller();
 
@@ -57,8 +57,8 @@ public class SellerController {
         return new ResponseEntity<>(message,HttpStatus.CREATED);
     }
 
-    @PostMapping(value = "seller-update-password")
-    public ResponseEntity<Object> updateSellerPassword(@RequestBody UpdatePasswordModel updatePasswordModel) {
+    @PostMapping(value = "/seller-update-password")
+    public ResponseEntity<Object> updateSellerPassword(@Valid @RequestBody UpdatePasswordModel updatePasswordModel) {
         Seller seller = userDaoService.getLoggedInSeller();
 
         String message = sellerDaoService.updateSellerPassword(seller.getUserId(), updatePasswordModel);
@@ -66,7 +66,7 @@ public class SellerController {
         return new ResponseEntity<>(message,HttpStatus.CREATED);
     }
 
-    @PatchMapping(value = "seller-update-address/{addressId}")
+    @PatchMapping(value = "/seller-update-address/{addressId}")
     public ResponseEntity<Object> updateSellerAddress(@PathVariable Long addressId, @RequestBody AddressUpdateModel addressUpdateModel) {
         Seller seller = userDaoService.getLoggedInSeller();
 

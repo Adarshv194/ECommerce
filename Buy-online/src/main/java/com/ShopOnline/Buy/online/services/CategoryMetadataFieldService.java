@@ -3,6 +3,7 @@ package com.ShopOnline.Buy.online.services;
 import com.ShopOnline.Buy.online.entities.category.Category;
 import com.ShopOnline.Buy.online.entities.category.CategoryMetaDataField;
 import com.ShopOnline.Buy.online.entities.category.CategoryMetaDataFieldValues;
+import com.ShopOnline.Buy.online.exceptions.BadRequestException;
 import com.ShopOnline.Buy.online.exceptions.ResourceNotFoundException;
 import com.ShopOnline.Buy.online.repos.CategoryMetadataFieldRepository;
 import com.ShopOnline.Buy.online.repos.CategoryMetadataFieldValuesRepository;
@@ -38,7 +39,7 @@ public class CategoryMetadataFieldService {
 
             categoryMetadataFieldRepository.save(categoryMetaDataField);
 
-            return "Category metadata field saved with name " + field + " ";
+            return "Category metadata field saved with name " + field + " and id " + categoryMetaDataField.getCategoryMetaDataFieldId() +" ";
         }
     }
 
@@ -77,6 +78,14 @@ public class CategoryMetadataFieldService {
             Category category = categoryOptional.get();
             CategoryMetaDataField categoryMetaDataField = categoryMetaDataFieldOptional.get();
 
+            if(category.getParentCategory() == null) {
+                throw new BadRequestException("Can't add the field values to the parent category");
+            }
+
+            if(fieldValues.size() == 0) {
+                throw new BadRequestException("Field values should contains atleast one value- pair");
+            }
+
             CategoryMetaDataFieldValues categoryMetaDataFieldValues = new CategoryMetaDataFieldValues();
             categoryMetaDataFieldValues.setCategory(category);
             categoryMetaDataFieldValues.setCategoryMetaDataField(categoryMetaDataField);
@@ -103,6 +112,14 @@ public class CategoryMetadataFieldService {
 
         Category category = categoryOptional.get();
         CategoryMetaDataField categoryMetaDataField = categoryMetaDataFieldOptional.get();
+
+        if(category.getParentCategory() == null) {
+            throw new BadRequestException("Can't add the field values to the parent category");
+        }
+
+        if(fieldValues.size() == 0) {
+            throw new BadRequestException("Field values should contains atleast one value- pair");
+        }
 
         Optional<CategoryMetaDataFieldValues> categoryMetadataFieldValueOptional = categoryMetadataFieldValuesRepository.findByCategoryAndCategoryMetadataField(categoryId, metadataFieldId);
 

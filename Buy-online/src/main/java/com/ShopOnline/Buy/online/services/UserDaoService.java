@@ -94,11 +94,11 @@ public class UserDaoService {
             mailMessage.setFrom("adarshv193@gmail.com");
             mailMessage.setSubject("Complete Registration");
             mailMessage.setText("To confirm your account, Please click here : "
-            +"http:localhost:8080/confirm-account?token="+token.getConfirmationToken());
+            +"http://localhost:8080/confirm-account?token="+token.getConfirmationToken());
 
             emailSenderService.sendEmail(mailMessage);
 
-            return "Registration successfull, Please verify your email via Activation link sent on your registered email ID";
+            return "Registration successful, Please verify your email via Activation link sent on your registered email ID";
         }
     }
 
@@ -116,9 +116,16 @@ public class UserDaoService {
                 if(userOptional.isPresent()) {
                     User user = userOptional.get();
                     user.setEnabled(true);
+                    user.setActive(false);
                     userRepository.save(user);
 
                     confirmationTokenRepository.deleteConfirmationToken(confirmToken);
+                    SimpleMailMessage mailMessage = new SimpleMailMessage();
+                    mailMessage.setTo(user.getEmail());
+                    mailMessage.setFrom("adarshv193@gmail.com");
+                    mailMessage.setSubject("Account activated");
+                    mailMessage.setText("Your account has been activated");
+                    emailSenderService.sendEmail(mailMessage);
 
                     return "Thank you, Your account is successfully verified enjoy shopping";
                 }
@@ -154,7 +161,7 @@ public class UserDaoService {
                         mailMessage.setFrom("adarshv193@gmail.com");
                         mailMessage.setSubject("Complete Registration, Sending activation link again");
                         mailMessage.setText("To confirm your account, Please click here : "
-                                +"http:localhost:8080/confirm-account?token="+newToken.getConfirmationToken());
+                                +"http://localhost:8080/confirm-account?token="+newToken.getConfirmationToken());
 
                         emailSenderService.sendEmail(mailMessage);
 
@@ -173,7 +180,7 @@ public class UserDaoService {
                     mailMessage.setFrom("adarshv193@gmail.com");
                     mailMessage.setSubject("Complete Registration");
                     mailMessage.setText("To confirm your account, Please click here : "
-                            +"http:localhost:8080/confirm-account?token="+token.getConfirmationToken());
+                            +"http://localhost:8080/confirm-account?token="+token.getConfirmationToken());
 
                     emailSenderService.sendEmail(mailMessage);
 
@@ -208,6 +215,7 @@ public class UserDaoService {
             seller.setDeleted(false);
             seller.setEnabled(false);
             seller.setNonLocked(true);
+            seller.setActive(false);
 
             Optional<Role> roleOptional = roleRepository.findById(3L);
             seller.setRoleList(Arrays.asList(roleOptional.get()));
@@ -295,7 +303,7 @@ public class UserDaoService {
         List<Customer> allCustomers = userRepository.findAllCustomers(pageable);
 
         SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("userId","email","firstName","middleName","lastName",
-                "isActive","isNonLocked","isEnabled","isDeleted");
+                "active","locked","enabled","deleted");
 
         FilterProvider filters = new SimpleFilterProvider().addFilter("userfilter",filter);
 
@@ -311,7 +319,7 @@ public class UserDaoService {
         List<Seller> allSellers = userRepository.findAllSellers(pageable);
 
         SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("userId","firstName","middleName","lastName",
-                "email","companyName","addressSet","companyContact","isActive","isNonLocked","isEnabled");
+                "email","companyName","addressSet","companyContact","active","locked","enabled");
 
         FilterProvider filters = new SimpleFilterProvider().addFilter("userfilter",filter);
 
@@ -321,6 +329,7 @@ public class UserDaoService {
         return mapping;
     }
 
+    @Transactional
     public String updateCustomerProfile(CustomerUpdateModel customerUpdateModel, Long customerId) {
         Optional<User> userOptional = userRepository.findById(customerId);
         if(userOptional.isPresent()) {
@@ -342,9 +351,18 @@ public class UserDaoService {
                 customer.setLastName(customerUpdateModel.getLastName());
             }
 
-            if(customer.getContact() != null) {
+            if(customerUpdateModel.getContact() != null) {
                 if(!customerUpdateModel.getContact().matches("^[0-9]*$")) {
                     throw new BadRequestException("Phone number must contains numbers only");
+                }
+                else {
+                    System.out.println("called");
+                    if(customerUpdateModel.getContact().length() == 10) {
+                        customer.setContact(customerUpdateModel.getContact());
+                    }
+                    else {
+                        throw new BadRequestException("Phone number must contains numbers only, invalid format received");
+                    }
                 }
             }
 
@@ -402,9 +420,10 @@ public class UserDaoService {
 
             ModelMapper mapper = new ModelMapper();
             Address address = mapper.map(addressModel, Address.class);
+
             address.setUser(customer);
 
-            userRepository.save(customer);
+            addressRepository.save(address);
 
             return "Address added";
         }
@@ -426,8 +445,8 @@ public class UserDaoService {
                 if(!address.getUser().getUserId().equals(customer.getUserId())) {
                     throw new BadRequestException("Address not associated with the logged in customer can't delete the address");
                 }
-                
-                addressRepository.delete(address);
+
+                addressRepository.deleteAddress(customer.getUserId(),address.getAddressId());
                 
                 return "Address deleted with id " + addressId + " from the database";
             }

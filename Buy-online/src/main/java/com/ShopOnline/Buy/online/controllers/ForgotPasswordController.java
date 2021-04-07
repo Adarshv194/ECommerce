@@ -19,7 +19,7 @@ public class ForgotPasswordController {
         return forgotPasswordDaoService.forgotPassword(emailModel.getEmail());
     }
 
-    @PutMapping(value = "/reset-password")
+    @PatchMapping(value = "/reset-password")
     public String resetPassword(@RequestParam("token") String token, @Valid @RequestBody ForgotPasswordModel forgotPasswordModel) {
         return forgotPasswordDaoService.resetPassword(token, forgotPasswordModel);
     }
