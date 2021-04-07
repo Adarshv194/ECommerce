@@ -327,7 +327,7 @@ public class UserDaoService {
             Customer customer = (Customer) userOptional.get();
 
             if(customerUpdateModel.getEmail() != null) {
-                throw new BadRequestException("Can't update the email of the customer");
+                throw new BadRequestException("Can't update the email of the customer, not authorized");
             }
 
             if(customerUpdateModel.getFirstName() != null) {
@@ -482,7 +482,7 @@ public class UserDaoService {
                     return "Address updated with id " + addressId + " from the database";
                 }
                 else {
-                    throw new BadRequestException("Address not associated with the logged in customer, can;'t update the address");
+                    throw new BadRequestException("Address not associated with the logged in customer, can't update the address");
                 }
             }
             else {

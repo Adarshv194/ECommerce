@@ -22,7 +22,8 @@ public class PasswordMatchesValidation implements ConstraintValidator<PasswordMa
         }
 
         else if(obj instanceof ForgotPasswordModel) {
-            return true;
+            ForgotPasswordModel model = (ForgotPasswordModel) obj;
+            return model.getPassword().equals(model.getConfirmPassword());
         }
 
         else {

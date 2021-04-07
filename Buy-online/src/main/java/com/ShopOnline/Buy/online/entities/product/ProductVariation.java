@@ -1,12 +1,14 @@
 package com.ShopOnline.Buy.online.entities.product;
 
 import com.ShopOnline.Buy.online.utils.HashMapCoverter;
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.util.Map;
 
 @Entity
+@JsonFilter("variantFilter")
 public class ProductVariation {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonIgnore

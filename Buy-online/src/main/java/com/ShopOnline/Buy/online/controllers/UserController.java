@@ -119,7 +119,7 @@ public class UserController {
         return new ResponseEntity<>(message,HttpStatus.CREATED);
     }
 
-    @PostMapping(value = "/update-password")
+    @PostMapping(value = "/customer-update-password")
     public ResponseEntity<Object> updateCustomerPassword(@Valid @RequestBody UpdatePasswordModel updatePasswordModel) {
         Customer customer = userDaoService.getLoggedInCustomer();
 

@@ -4,10 +4,7 @@ import com.ShopOnline.Buy.online.models.EmailModel;
 import com.ShopOnline.Buy.online.models.ForgotPasswordModel;
 import com.ShopOnline.Buy.online.services.ForgotPasswordDaoService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -22,7 +19,7 @@ public class ForgotPasswordController {
         return forgotPasswordDaoService.forgotPassword(emailModel.getEmail());
     }
 
-    @PostMapping(value = "/reset-password")
+    @PutMapping(value = "/reset-password")
     public String resetPassword(@RequestParam("token") String token, @Valid @RequestBody ForgotPasswordModel forgotPasswordModel) {
         return forgotPasswordDaoService.resetPassword(token, forgotPasswordModel);
     }

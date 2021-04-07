@@ -23,4 +23,7 @@ public interface CategoryRepository extends CrudRepository<Category, Long> {
 
     @Query(value = "select name from category where parent_id=:categoryId",nativeQuery = true)
     List<String> checkForCategoryName(@Param("categoryId") Long categoryId);
+
+    @Query(value = "select category_id from category where parent_id=:categoryId",nativeQuery = true)
+    List<Long> findAllChildCategoriesId(@Param("categoryId") Long categoryId);
 }

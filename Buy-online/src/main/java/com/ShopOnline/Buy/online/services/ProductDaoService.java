@@ -1,6 +1,7 @@
 package com.ShopOnline.Buy.online.services;
 
 import com.ShopOnline.Buy.online.entities.Seller;
+import com.ShopOnline.Buy.online.entities.User;
 import com.ShopOnline.Buy.online.entities.category.Category;
 import com.ShopOnline.Buy.online.entities.category.CategoryMetaDataField;
 import com.ShopOnline.Buy.online.entities.product.Product;
@@ -37,6 +38,8 @@ public class ProductDaoService {
     ProductVariationRepository productVariationRepository;
     @Autowired
     CategoryMetadataFieldRepository categoryMetadataFieldRepository;
+    @Autowired
+    UserDaoService userDaoService;
 
     public String addProduct(String categoryName, Seller seller, ProductModel productModel) {
         Optional<Category> categoryOptional = categoryRepository.findByName(categoryName);
@@ -441,4 +444,167 @@ public class ProductDaoService {
         }
     }
 
+    @Transactional
+    public Product findProductForSeller(Long productId) {
+        Optional<Product> productOptional = productRepository.findById(productId);
+        if(productOptional.isPresent()) {
+            Product product = productOptional.get();
+
+            Seller seller = (Seller) userDaoService.getLoggedInSeller();
+            if(!seller.getUserId().equals(product.getSeller().getUserId())) {
+                throw new BadRequestException("Invalid seller ID, The user which is trying to access the product is not the creator of the product");
+            }
+
+            if(product.getActive() && !product.getDeleted()) {
+                return product;
+            }
+            else {
+                throw new BadRequestException("Product is unavailable at the moment either it is deleted or not in active state");
+            }
+        }
+        else {
+            throw new ResourceNotFoundException("Invalid Product id, no product found with the id " + productId + " ");
+        }
+    }
+
+    public Product customerViewProduct(Long productId) {
+        Optional<Product> productOptional = productRepository.findById(productId);
+        if(productOptional.isPresent()) {
+            Product product = productOptional.get();
+
+            if(product.getProductVariationSet().size() <= 0) {
+                throw new BadRequestException("As the selected product does not have any valid product variation, please view some other product");
+            }
+
+            if(product.getActive() && !product.getDeleted()) {
+                return product;
+            }
+            else {
+                throw new BadRequestException("Product is unavailable at the moment either it is deleted or not in active state");
+            }
+        }
+        else {
+            throw new ResourceNotFoundException("Invalid Product id, no product found with the id " + productId + " ");
+        }
+    }
+
+    @Transactional
+    public ProductVariation findProductVariationForSeller(Long productVariaitonId) {
+        Optional<ProductVariation> productVariationOptional = productVariationRepository.findById(productVariaitonId);
+        if(productVariationOptional.isPresent()) {
+            ProductVariation productVariation = productVariationOptional.get();
+
+            Seller seller = (Seller) userDaoService.getLoggedInSeller();
+
+            if(!seller.getUserId().equals(productVariation.getProduct().getSeller().getUserId())) {
+                throw new BadRequestException("Invalid seller ID, The user which is trying to access the product variation is not the creator of the product variation");
+            }
+
+            Product product = productVariation.getProduct();
+
+            if(product.getActive() && !product.getDeleted()) {
+                if(productVariation.getActive() && !productVariation.getDeleted()) {
+                    return productVariation;
+                }
+                else {
+                    throw new BadRequestException("Product variation is unavailable at the moment either it is deleted or not in active state");
+                }
+            }
+            else {
+                throw new BadRequestException("Product is unavailable at the moment either it is deleted or not in active state");
+            }
+        }
+        else {
+            throw new ResourceNotFoundException("Invalid Product varaition id, no product variation found with the id " + productVariaitonId + " ");
+        }
+    }
+
+    public List<Product> findSellerWiseProducts(Long sellerId) {
+        return productRepository.findSellerAssociatedProducts(sellerId);
+    }
+
+    @Transactional
+    public String deleteProduct(long productId, Long sellerId) {
+        Optional<Product> productOptional = productRepository.findById(productId);
+        if(productOptional.isPresent()) {
+            Product product = productOptional.get();
+
+            if(!product.getActive()) {
+                throw new BadRequestException("Can't delete the product as it is not activated");
+            }
+
+            if(product.getDeleted()) {
+                return "Product is already deleted";
+            }
+
+            if(!product.getSeller().getUserId().equals(sellerId)) {
+                throw new BadRequestException("Invalid seller ID, The user which is trying to delete the product is not the creator of the product");
+            }
+
+            List<ProductVariation> allProductVariation = productVariationRepository.findAllProductVariationWithProductId(product.getProductId());
+
+            allProductVariation.forEach(productVariation -> {
+                productVariation.setActive(false);
+                productVariationRepository.save(productVariation);
+            });
+
+            product.setDeleted(true);
+
+            productRepository.save(product);
+
+            return "Product deleted successfully";
+        }
+        else {
+            throw new ResourceNotFoundException("Invalid Product id, no product found with the id " + productId + " ");
+        }
+    }
+
+    @Transactional
+    public List<Product> customerFindAllProductsCategoryWise(Long categoryId) {
+        Optional<Category> categoryOptional = categoryRepository.findById(categoryId);
+        if(categoryOptional.isPresent()) {
+            Category category = categoryOptional.get();
+
+            List<Product> products = new ArrayList<>();
+
+            if(category.getParentCategory() == null) {
+                List<Long> allChildCategoriesId = categoryRepository.findAllChildCategoriesId(category.getCategoryId());
+                for(Long id :  allChildCategoriesId) {
+                    List<Product> productByCategory = productRepository.findProductByCategory(id);
+
+                    for(Product product : productByCategory) {
+                        products.add(product);
+                    }
+                }
+
+                return products;
+            }
+            else {
+                products = productRepository.findProductByCategory(category.getCategoryId());
+
+                return products;
+            }
+        }
+        else {
+            throw new ResourceNotFoundException("Invalid category Id, no category found wiht the id " + categoryId);
+        }
+    }
+
+    @Transactional
+    public List<Product> customerGetAllSimilarProduct(Long productId) {
+        Optional<Product> productOptional = productRepository.findById(productId);
+        if(productOptional.isPresent()) {
+            Product product = productOptional.get();
+
+            return productRepository.findProductByCategory(product.getCategory().getCategoryId());
+        }
+        else {
+            throw new ResourceNotFoundException("Invalid Product id, no product found with the id " + productId + " ");
+        }
+    }
+
+    @Transactional
+    public List<Product> adminFindAllProducts() {
+       return productRepository.findAllProducts();
+    }
 }

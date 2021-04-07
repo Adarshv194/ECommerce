@@ -2,6 +2,7 @@ package com.ShopOnline.Buy.online.entities.product;
 
 import com.ShopOnline.Buy.online.entities.Seller;
 import com.ShopOnline.Buy.online.entities.category.Category;
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -11,6 +12,7 @@ import java.util.Date;
 import java.util.Set;
 
 @Entity
+@JsonFilter("productfilter")
 public class Product {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonIgnore
