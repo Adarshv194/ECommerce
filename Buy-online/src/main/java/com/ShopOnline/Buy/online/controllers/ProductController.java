@@ -32,11 +32,11 @@ public class ProductController {
     @Autowired
     ProductVariationRepository productVariationRepository;
 
-    @PostMapping(value = "/add-product/{categoryName}")
-    public ResponseEntity<Object> saveProduct(@PathVariable String categoryName, @Valid @RequestBody ProductModel productModel) {
+    @PostMapping(value = "/add-product/{categoryId}")
+    public ResponseEntity<Object> saveProduct(@PathVariable Long categoryId, @Valid @RequestBody ProductModel productModel) {
         Seller seller = userDaoService.getLoggedInSeller();
 
-        String message = productDaoService.addProduct(categoryName,seller,productModel);
+        String message = productDaoService.addProduct(categoryId,seller,productModel);
 
         return new ResponseEntity<>(message, HttpStatus.CREATED);
     }
@@ -51,6 +51,7 @@ public class ProductController {
     }
 
     public Product sellerViewProduct(Long productId) {
+
         return productDaoService.findProductForSeller(productId);
     }
 
@@ -58,13 +59,16 @@ public class ProductController {
     public MappingJacksonValue sellerGetProduct(@PathVariable Long productId) {
 
         SimpleBeanPropertyFilter filter1 = SimpleBeanPropertyFilter.filterOutAllExcept("productName","brand","productDescription",
-                "isCancellable","isReturnable","productVariationSet","category");
+                "cancellable","returnable","productVariationSet","category");
 
         SimpleBeanPropertyFilter filter2 = SimpleBeanPropertyFilter.filterOutAllExcept("variantName","price","quantityAvailable",
-                "isActive","productAttributes");
+                "active","productAttributes");
+
+        SimpleBeanPropertyFilter filter3 = SimpleBeanPropertyFilter.filterOutAllExcept("name");
 
         FilterProvider filters = new SimpleFilterProvider().addFilter("productfilter",filter1)
-                .addFilter("variantFilter",filter2);
+                .addFilter("variantFilter",filter2)
+                .addFilter("categoryfilter",filter3);
 
         MappingJacksonValue mapping = new MappingJacksonValue(sellerViewProduct(productId));
         mapping.setFilters(filters);
@@ -80,13 +84,16 @@ public class ProductController {
      public MappingJacksonValue sellerGetProductVariation(@PathVariable Long productVariaitonId) {
 
         SimpleBeanPropertyFilter filter1 = SimpleBeanPropertyFilter.filterOutAllExcept("variantName","price","quantityAvailable",
-                "isActive","productAttributes","product");
+                "active","productAttributes","product");
 
         SimpleBeanPropertyFilter filter2 = SimpleBeanPropertyFilter.filterOutAllExcept("productName","brand","productDescription",
-                "isCancellable","isReturnable","category");
+                "cancellable","returnable","category");
+
+        SimpleBeanPropertyFilter filter3 = SimpleBeanPropertyFilter.filterOutAllExcept("name");
 
         FilterProvider filters = new SimpleFilterProvider().addFilter("variantFilter",filter1)
-                .addFilter("productfilter",filter2);
+                .addFilter("productfilter",filter2)
+                .addFilter("categoryfilter",filter3);
 
         MappingJacksonValue mapping = new MappingJacksonValue(sellerViewProductVaraition(productVariaitonId));
         mapping.setFilters(filters);
@@ -95,21 +102,24 @@ public class ProductController {
     }
 
     public List<Product> findSellerWiseProducts(Long sellerId) {
-        return productDaoService.findSellerWiseProducts(sellerId);
+        return productDaoService.findSellerWiseAllProducts(sellerId);
     }
 
-    @GetMapping(value = "seller/view-allproducts")
+    @GetMapping(value = "/seller/view-allproducts")
     public MappingJacksonValue sellerGetAllProducts() {
         Seller seller = userDaoService.getLoggedInSeller();
 
         SimpleBeanPropertyFilter filter1 = SimpleBeanPropertyFilter.filterOutAllExcept("productName","brand","productDescription",
-                "isCancellable","isReturnable","productVariationSet","category");
+                "cancellable","returnable","productVariationSet","category");
 
         SimpleBeanPropertyFilter filter2 = SimpleBeanPropertyFilter.filterOutAllExcept("variantName","price","quantityAvailable",
-                "isActive","productAttributes");
+                "active","productAttributes");
+
+        SimpleBeanPropertyFilter filter3 = SimpleBeanPropertyFilter.filterOutAllExcept("name");
 
         FilterProvider filters = new SimpleFilterProvider().addFilter("productfilter",filter1)
-                .addFilter("variantFilter",filter2);
+                .addFilter("variantFilter",filter2)
+                .addFilter("categoryfilter",filter3);
 
         MappingJacksonValue mapping = new MappingJacksonValue(findSellerWiseProducts(seller.getUserId()));
         mapping.setFilters(filters);
@@ -117,11 +127,11 @@ public class ProductController {
         return mapping;
     }
 
-    @GetMapping(value = "seller/view-product-variation/{productId}")
+    @GetMapping(value = "/seller/view-all-product-variation/{productId}")
     public MappingJacksonValue sellerGetAllProductVariationsByProduct(@PathVariable Long productId) {
 
         SimpleBeanPropertyFilter filter1 = SimpleBeanPropertyFilter.filterOutAllExcept("productName","brand","productDescription",
-                "isCancellable","isReturnable","productVariationSet","category");
+                "isCancellable","isReturnable","productVariationSet");
 
         SimpleBeanPropertyFilter filter2 = SimpleBeanPropertyFilter.filterOutAllExcept("variantName","price","quantityAvailable",
                 "isActive","productAttributes");
@@ -135,7 +145,7 @@ public class ProductController {
         return mapping;
     }
 
-    @DeleteMapping(value = "seller/delete-product/{productId}")
+    @DeleteMapping(value = "/seller/delete-product/{productId}")
     public ResponseEntity<Object> deleteProduct(@PathVariable Long productId) {
         Seller seller = userDaoService.getLoggedInSeller();
         String message = productDaoService.deleteProduct(productId, seller.getUserId());
@@ -147,17 +157,20 @@ public class ProductController {
         return productDaoService.customerViewProduct(productId);
     }
 
-    @GetMapping(value = "customer/view-product/{productId}")
+    @GetMapping(value = "/customer/view-product/{productId}")
     public MappingJacksonValue customerGetProduct(@PathVariable Long productId) {
 
         SimpleBeanPropertyFilter filter1 = SimpleBeanPropertyFilter.filterOutAllExcept("productName","brand","productDescription",
-                "isCancellable","isReturnable","productVariationSet","category");
+                "cancellable","returnable","productVariationSet","category");
 
         SimpleBeanPropertyFilter filter2 = SimpleBeanPropertyFilter.filterOutAllExcept("variantName","price","quantityAvailable",
-                "isActive","productAttributes");
+                "active","productAttributes");
+
+        SimpleBeanPropertyFilter filter3 = SimpleBeanPropertyFilter.filterOutAllExcept("name");
 
         FilterProvider filters = new SimpleFilterProvider().addFilter("productfilter",filter1)
-                .addFilter("variantFilter",filter2);
+                .addFilter("variantFilter",filter2)
+                .addFilter("categoryfilter",filter3);
 
         MappingJacksonValue mapping = new MappingJacksonValue(customerViewProduct(productId));
         mapping.setFilters(filters);
@@ -169,16 +182,19 @@ public class ProductController {
         return productDaoService.customerFindAllProductsCategoryWise(categoryId);
     }
 
-    @GetMapping(value = "customer/view-allproducts/{categoryId}")
+    @GetMapping(value = "/customer/view-allproducts/{categoryId}")
     public MappingJacksonValue customerGetAllProductsForACathegory(@PathVariable Long categoryId) {
         SimpleBeanPropertyFilter filter1 = SimpleBeanPropertyFilter.filterOutAllExcept("productName","brand","productDescription",
-                "isCancellable","isReturnable","productVariationSet","category");
+                "cancellable","returnable","productVariationSet","category");
 
         SimpleBeanPropertyFilter filter2 = SimpleBeanPropertyFilter.filterOutAllExcept("variantName","price","quantityAvailable",
-                "isActive","productAttributes");
+                "active","productAttributes");
+
+        SimpleBeanPropertyFilter filter3 = SimpleBeanPropertyFilter.filterOutAllExcept("name");
 
         FilterProvider filters = new SimpleFilterProvider().addFilter("productfilter",filter1)
-                .addFilter("variantFilter",filter2);
+                .addFilter("variantFilter",filter2)
+                .addFilter("categoryfilter",filter3);
 
         MappingJacksonValue mapping = new MappingJacksonValue(customerFindAllProductsCategoryWise(categoryId));
         mapping.setFilters(filters);
@@ -194,13 +210,16 @@ public class ProductController {
     public MappingJacksonValue customerGetAllSimilarProduct(@PathVariable Long productId) {
 
         SimpleBeanPropertyFilter filter1 = SimpleBeanPropertyFilter.filterOutAllExcept("productName","brand","productDescription",
-                "isCancellable","isReturnable","productVariationSet","category");
+                "cancellable","returnable","productVariationSet","category");
 
         SimpleBeanPropertyFilter filter2 = SimpleBeanPropertyFilter.filterOutAllExcept("variantName","price","quantityAvailable",
-                "isActive","productAttributes");
+                "active","productAttributes");
+
+        SimpleBeanPropertyFilter filter3 = SimpleBeanPropertyFilter.filterOutAllExcept("name");
 
         FilterProvider filters = new SimpleFilterProvider().addFilter("productfilter",filter1)
-                .addFilter("variantFilter",filter2);
+                .addFilter("variantFilter",filter2)
+                .addFilter("categoryfilter",filter3);
 
         MappingJacksonValue mapping = new MappingJacksonValue(customerFindAllSimilarProducts(productId));
         mapping.setFilters(filters);
@@ -208,17 +227,20 @@ public class ProductController {
         return mapping;
     }
 
-    @GetMapping(value = "admin/view-product/{productId}")
+    @GetMapping(value = "/admin/view-product/{productId}")
     public MappingJacksonValue adminGetProduct(@PathVariable Long productId) {
 
         SimpleBeanPropertyFilter filter1 = SimpleBeanPropertyFilter.filterOutAllExcept("productName","brand","productDescription",
-                "isCancellable","isReturnable","productVariationSet","category");
+                "cancellable","returnable","productVariationSet","category");
 
         SimpleBeanPropertyFilter filter2 = SimpleBeanPropertyFilter.filterOutAllExcept("variantName","price","quantityAvailable",
-                "isActive","productAttributes");
+                "active","productAttributes");
+
+        SimpleBeanPropertyFilter filter3 = SimpleBeanPropertyFilter.filterOutAllExcept("name");
 
         FilterProvider filters = new SimpleFilterProvider().addFilter("productfilter",filter1)
-                .addFilter("variantFilter",filter2);
+                .addFilter("variantFilter",filter2)
+                .addFilter("categoryfilter",filter3);
 
         MappingJacksonValue mapping = new MappingJacksonValue(customerViewProduct(productId));
         mapping.setFilters(filters);
@@ -230,17 +252,20 @@ public class ProductController {
         return productDaoService.adminFindAllProducts();
     }
 
-    @GetMapping(value = "admin/view-allproducts")
+    @GetMapping(value = "/admin/view-allproducts")
     public MappingJacksonValue adminGetAllProducts() {
 
         SimpleBeanPropertyFilter filter1 = SimpleBeanPropertyFilter.filterOutAllExcept("productName","brand","productDescription",
-                "isCancellable","isReturnable","productVariationSet","category");
+                "cancellable","returnable","productVariationSet","category");
 
         SimpleBeanPropertyFilter filter2 = SimpleBeanPropertyFilter.filterOutAllExcept("variantName","price","quantityAvailable",
-                "isActive","productAttributes");
+                "active","productAttributes");
+
+        SimpleBeanPropertyFilter filter3 = SimpleBeanPropertyFilter.filterOutAllExcept("name");
 
         FilterProvider filters = new SimpleFilterProvider().addFilter("productfilter",filter1)
-                .addFilter("variantFilter",filter2);
+                .addFilter("variantFilter",filter2)
+                .addFilter("categoryfilter",filter3);
 
         MappingJacksonValue mapping = new MappingJacksonValue(adminFindAllProducts());
         mapping.setFilters(filters);

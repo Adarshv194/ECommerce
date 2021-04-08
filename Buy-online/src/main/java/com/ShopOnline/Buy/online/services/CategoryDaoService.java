@@ -5,9 +5,11 @@ import com.ShopOnline.Buy.online.entities.category.CategoryMetaDataFieldValues;
 import com.ShopOnline.Buy.online.exceptions.BadRequestException;
 import com.ShopOnline.Buy.online.exceptions.ResourceNotFoundException;
 import com.ShopOnline.Buy.online.models.CategoryModel;
+import com.ShopOnline.Buy.online.models.CategoryViewModel;
 import com.ShopOnline.Buy.online.models.FilterCategoryModel;
 import com.ShopOnline.Buy.online.repos.CategoryMetadataFieldValuesRepository;
 import com.ShopOnline.Buy.online.repos.CategoryRepository;
+import com.ShopOnline.Buy.online.repos.ProductRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,8 @@ public class CategoryDaoService {
 
     @Autowired
     CategoryRepository categoryRepository;
+    @Autowired
+    ProductRepository productRepository;
     @Autowired
     CategoryMetadataFieldValuesRepository categoryMetadataFieldValuesRepository;
 
@@ -121,7 +125,7 @@ public class CategoryDaoService {
     }
 
     public List<FilterCategoryModel> sellerGetAllCategory() {
-        List<Category> categoryList = categoryRepository.findAllRootLevelCategory();
+        List<Category> categoryList = categoryRepository.findAllCategories();
         List<FilterCategoryModel> filterCategoryModelList = new ArrayList<>();
 
         for(Category toReturnable : categoryList) {
@@ -199,8 +203,23 @@ public class CategoryDaoService {
         }
     }
 
-    public List<Category> getAllRootLevelCategories() {
-        return categoryRepository.findAllRootLevelCategory();
+    public List<FilterCategoryModel> getAllRootLevelCategories() {
+
+        List<Category> categoryList = categoryRepository.findRoot();
+        List<FilterCategoryModel> filterCategoryModelList = new ArrayList<>();
+
+        for(Category toReturnable : categoryList) {
+            List<CategoryMetaDataFieldValues> toReturnableFV = categoryMetadataFieldValuesRepository.findByCategoryId(toReturnable.getCategoryId());
+
+            FilterCategoryModel filterCategoryModelObj = new FilterCategoryModel();
+
+            filterCategoryModelObj.setCategory(toReturnable);
+            filterCategoryModelObj.setCategoryMetaDataFieldValuesList(toReturnableFV);
+
+            filterCategoryModelList.add(filterCategoryModelObj);
+        }
+
+        return filterCategoryModelList;
     }
 
     public List<Category> getAllSubCategoriesWithId(Long categoryId) {
@@ -211,6 +230,73 @@ public class CategoryDaoService {
         }
         else {
             throw new ResourceNotFoundException("Invalid category ID, no record found with the ID " + categoryId + " ");
+        }
+    }
+
+    public List<CategoryViewModel> getAllFilterCategoryWithProducts(Long categoryId) {
+        Optional<Category> categoryOptional = categoryRepository.findById(categoryId);
+        if(categoryOptional.isPresent()) {
+            Category category = categoryOptional.get();
+            List<CategoryViewModel> categoryViewModelList = new ArrayList<>();
+            List<Category> categoryList = new ArrayList<>();
+
+
+            if(category.getParentCategory() == null) {
+                System.out.println("called");
+                List<Category> allParentCategoryList = categoryRepository.getAllSubCategoriesWithId(category.getCategoryId());
+
+                for(Category parentCategory : allParentCategoryList) {
+                    categoryList.add(parentCategory);
+                    System.out.println(parentCategory.getName());
+                }
+
+                for(Category toReturnable : categoryList) {
+                    List<CategoryMetaDataFieldValues> toReturnableFV = categoryMetadataFieldValuesRepository.findByCategoryId(toReturnable.getCategoryId());
+                    List<String> allBrandName = productRepository.findAllBrandName(toReturnable.getCategoryId());
+
+                    CategoryViewModel categoryViewModelObj = new CategoryViewModel();
+
+                    categoryViewModelObj.setBrand(allBrandName);
+
+                    categoryViewModelObj.setCategory(toReturnable);
+                    categoryViewModelObj.setCategoryMetaDataFieldValuesList(toReturnableFV);
+
+                    categoryViewModelList.add(categoryViewModelObj);
+                }
+
+                for (CategoryViewModel categoryViewModel : categoryViewModelList) {
+                    System.out.println(categoryViewModel.getCategory().getName());
+                    List<String> brand = categoryViewModel.getBrand();
+                    for (String b : brand) {
+                        System.out.println(b);
+                    }
+                }
+
+                return categoryViewModelList;
+
+            }
+            else {
+                categoryList.add(category);
+
+                for(Category toReturnable : categoryList) {
+                    List<CategoryMetaDataFieldValues> toReturnableFV = categoryMetadataFieldValuesRepository.findByCategoryId(toReturnable.getCategoryId());
+                    List<String> allBrandName = productRepository.findAllBrandName(category.getCategoryId());
+
+                    CategoryViewModel categoryViewModelObj = new CategoryViewModel();
+
+                    categoryViewModelObj.setBrand(allBrandName);
+
+                    categoryViewModelObj.setCategory(toReturnable);
+                    categoryViewModelObj.setCategoryMetaDataFieldValuesList(toReturnableFV);
+
+                    categoryViewModelList.add(categoryViewModelObj);
+                }
+
+                return categoryViewModelList;
+            }
+        }
+        else {
+            throw new ResourceNotFoundException("Category not found with the ID " + categoryId + " ");
         }
     }
 

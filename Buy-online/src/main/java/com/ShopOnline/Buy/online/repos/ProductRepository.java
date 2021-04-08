@@ -1,6 +1,7 @@
 package com.ShopOnline.Buy.online.repos;
 
 import com.ShopOnline.Buy.online.entities.product.Product;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -21,4 +22,7 @@ public interface ProductRepository extends CrudRepository<Product, Long> {
 
     @Query(value = "select * from product where is_deleted=false and is_active=true", nativeQuery = true)
     List<Product> findAllProducts();
+
+    @Query(value = "select brand from product where category_id=:categoryId and is_deleted=false and is_active=true",nativeQuery = true)
+    List<String> findAllBrandName(@Param("categoryId") Long categoryId);
 }

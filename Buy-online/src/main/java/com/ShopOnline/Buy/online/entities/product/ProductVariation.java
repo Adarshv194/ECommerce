@@ -20,7 +20,6 @@ public class ProductVariation {
     private Boolean isDeleted;
     private Long imageId;
 
-    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "productId")
     private Product product;

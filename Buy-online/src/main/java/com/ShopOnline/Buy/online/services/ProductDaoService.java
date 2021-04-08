@@ -41,13 +41,13 @@ public class ProductDaoService {
     @Autowired
     UserDaoService userDaoService;
 
-    public String addProduct(String categoryName, Seller seller, ProductModel productModel) {
-        Optional<Category> categoryOptional = categoryRepository.findByName(categoryName);
+    public String addProduct(Long categoryId, Seller seller, ProductModel productModel) {
+        Optional<Category> categoryOptional = categoryRepository.findById(categoryId);
 
         if(categoryOptional.isPresent()) {
             Category category = categoryOptional.get();
             if(category.getParentCategory() == null) {
-                throw new BadRequestException("Product should be the leaf category, " + categoryName + " is not a leaf category");
+                throw new BadRequestException("Product should be the leaf category, " + category.getName() + " is not a leaf category");
             }
             else {
                 ModelMapper mapper = new ModelMapper();
@@ -81,7 +81,7 @@ public class ProductDaoService {
             }
         }
         else {
-            throw new ResourceNotFoundException("Invalid Category name, Category not found in the database with category name " + categoryName + " " );
+            throw new ResourceNotFoundException("Invalid Category name, Category not found in the database with category id " + categoryId + " " );
         }
     }
 
@@ -101,6 +101,8 @@ public class ProductDaoService {
 
             ModelMapper mapper = new ModelMapper();
             ProductVariation productVariation = mapper.map(productVariationModel, ProductVariation.class);
+
+            Map<String, Object> productAttributes1 = productVariation.getProductAttributes();
 
             if(product.getSeller().getUserId().equals(seller.getUserId())) {
 
@@ -171,7 +173,6 @@ public class ProductDaoService {
     }
 
     public Boolean checkProductValidationModel(Long product_id, ProductVariationModel productVariationModel) {
-        System.out.println("Calling check for checkProductValidationModel");
 
         Product product = productRepository.findById(product_id).get();
 
@@ -179,15 +180,13 @@ public class ProductDaoService {
 
         Set<String> modelKeySets = productAttributes.keySet();
 
-        System.out.println(modelKeySets);
-
         Integer modelMetadatLengthField = modelKeySets.size();
+
 
         if(modelMetadatLengthField <= 0) {
             throw new BadRequestException("There should atleast one metadata field values, and all the product variations should have the same format");
         }
 
-        System.out.println(modelMetadatLengthField);
 
         List<Long> categoryMetaDataFieldsIDs = productVariationRepository.checkDbMetadataLengthField(product.getCategory().getCategoryId());
 
@@ -197,18 +196,11 @@ public class ProductDaoService {
 
         Set<String> categoryMetaDataFieldListName = new HashSet<>();
 
-        System.out.println("All good here");
-
-        System.out.println(categoryMetaDataFieldsIDs);
 
         categoryMetaDataFieldsIDs.forEach(id -> {
-            System.out.println(id);
             String name = categoryMetadataFieldRepository.findById(id).get().getName();
-            System.out.println(name);
             categoryMetaDataFieldListName.add(name);
         });
-
-        System.out.println("All good here 1");
 
         for(String field : modelKeySets) {
             Boolean checker = false;
@@ -395,7 +387,7 @@ public class ProductDaoService {
                     mailMessage.setText("Your product " + product.getProductName() + " has been activated by our team ");
                     emailSenderService.sendEmail(mailMessage);
 
-                    return "Product with " + productId + " is activated";
+                    return "Product " + product.getProductName()  + " with id " + productId + " is activated";
                 }
                 else {
                     return "Can't activate the product " + product.getProductName() + " as it is deleted";
@@ -467,16 +459,17 @@ public class ProductDaoService {
         }
     }
 
+    @Transactional
     public Product customerViewProduct(Long productId) {
         Optional<Product> productOptional = productRepository.findById(productId);
         if(productOptional.isPresent()) {
             Product product = productOptional.get();
 
-            if(product.getProductVariationSet().size() <= 0) {
-                throw new BadRequestException("As the selected product does not have any valid product variation, please view some other product");
-            }
-
             if(product.getActive() && !product.getDeleted()) {
+                if(product.getProductVariationSet().size() == 0) {
+                    throw new BadRequestException("As the selected product does not have any valid product variation, please view some other product");
+                }
+
                 return product;
             }
             else {
@@ -519,7 +512,7 @@ public class ProductDaoService {
         }
     }
 
-    public List<Product> findSellerWiseProducts(Long sellerId) {
+    public List<Product> findSellerWiseAllProducts(Long sellerId) {
         return productRepository.findSellerAssociatedProducts(sellerId);
     }
 
