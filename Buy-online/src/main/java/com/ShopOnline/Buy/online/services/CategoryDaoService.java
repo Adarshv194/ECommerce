@@ -33,10 +33,9 @@ public class CategoryDaoService {
 
     public String addParentCategory(CategoryModel categoryModel) {
         Optional<Category> categoryOptional = categoryRepository.findByName(categoryModel.getName());
-        if(categoryOptional.isPresent()) {
+        if (categoryOptional.isPresent()) {
             throw new BadRequestException("Category already present in the database with name" + categoryModel.getName() + " ");
-        }
-        else {
+        } else {
             ModelMapper mapper = new ModelMapper();
             Category category = mapper.map(categoryModel, Category.class);
 
@@ -48,12 +47,13 @@ public class CategoryDaoService {
 
     public String addSubCategories(String parentCategory, List<CategoryModel> categoryModelList) {
         Optional<Category> categoryOptional = categoryRepository.findByName(parentCategory);
-        if(categoryOptional.isPresent()) {
+        if (categoryOptional.isPresent()) {
             Category pCategory = categoryOptional.get();
 
-            Type listType = new TypeToken<List<Category>>(){}.getType();
+            Type listType = new TypeToken<List<Category>>() {
+            }.getType();
             ModelMapper mapper = new ModelMapper();
-            List<Category> categoryList = mapper.map(categoryModelList,listType);
+            List<Category> categoryList = mapper.map(categoryModelList, listType);
 
             List<String> modelNames = new ArrayList<>();
             categoryList.forEach(category -> {
@@ -61,10 +61,10 @@ public class CategoryDaoService {
             });
 
             List<String> categoryNames = categoryRepository.checkForCategoryName(pCategory.getCategoryId());
-            for(String categoryName : categoryNames) {
+            for (String categoryName : categoryNames) {
 
-                for(String name : modelNames) {
-                    if(categoryName.equals(name)) {
+                for (String name : modelNames) {
+                    if (categoryName.equals(name)) {
                         throw new BadRequestException("can't add the Sub-category " + name + " as it is already added in the database");
                     }
                 }
@@ -75,8 +75,7 @@ public class CategoryDaoService {
             categoryRepository.saveAll(categoryList);
 
             return "All sub-categories gets saved in the database";
-        }
-        else {
+        } else {
             throw new ResourceNotFoundException("Category not found in the database with name " + parentCategory + " ");
         }
     }
@@ -84,10 +83,10 @@ public class CategoryDaoService {
     public String updateCategory(String categoryName, CategoryModel categoryModel) {
         Optional<Category> categoryOptional = categoryRepository.findByName(categoryName);
 
-        if(categoryOptional.isPresent()) {
+        if (categoryOptional.isPresent()) {
 
             Optional<Category> categoryNameOptional = categoryRepository.findByName(categoryModel.getName());
-            if(categoryNameOptional.isPresent()) {
+            if (categoryNameOptional.isPresent()) {
                 throw new BadRequestException("Can't update the category with name " + categoryModel.getName() + " as there is already a categroy with that name");
             }
 
@@ -98,19 +97,18 @@ public class CategoryDaoService {
             categoryRepository.save(category);
 
             return categoryName + " Category gets updated";
-        }
-        else {
+        } else {
             throw new ResourceNotFoundException("Category not found in the database with name " + categoryName + " ");
         }
     }
 
     public List<FilterCategoryModel> getAllCategory(String page, String size) {
-        Pageable pageable = PageRequest.of(Integer.parseInt(page),Integer.parseInt(size));
+        Pageable pageable = PageRequest.of(Integer.parseInt(page), Integer.parseInt(size));
 
         List<Category> categoryList = categoryRepository.findAll(pageable);
         List<FilterCategoryModel> filterCategoryModelList = new ArrayList<>();
 
-        for(Category toReturnable : categoryList) {
+        for (Category toReturnable : categoryList) {
             List<CategoryMetaDataFieldValues> toReturnableFV = categoryMetadataFieldValuesRepository.findByCategoryId(toReturnable.getCategoryId());
 
             FilterCategoryModel filterCategoryModelObj = new FilterCategoryModel();
@@ -128,7 +126,7 @@ public class CategoryDaoService {
         List<Category> categoryList = categoryRepository.findAllCategories();
         List<FilterCategoryModel> filterCategoryModelList = new ArrayList<>();
 
-        for(Category toReturnable : categoryList) {
+        for (Category toReturnable : categoryList) {
             List<CategoryMetaDataFieldValues> toReturnableFV = categoryMetadataFieldValuesRepository.findByCategoryId(toReturnable.getCategoryId());
 
             FilterCategoryModel filterCategoryModelObj = new FilterCategoryModel();
@@ -145,23 +143,23 @@ public class CategoryDaoService {
     public List<FilterCategoryModel> getCategory(Long categoryId) {
 
         Optional<Category> categoryOptional = categoryRepository.findById(categoryId);
-        if(categoryOptional.isPresent()) {
+        if (categoryOptional.isPresent()) {
             Category category = categoryOptional.get();
 
             List<Category> categoryList = new ArrayList<>();
 
-            if(category.getParentCategory() == null) {
+            if (category.getParentCategory() == null) {
                 categoryList.add(category);
 
                 List<Category> subCategories = categoryRepository.getAllSubCategoriesWithId(category.getCategoryId());
 
                 List<FilterCategoryModel> filterCategoryModelList = new ArrayList<>();
 
-                    for(Category subCategory : subCategories) {
-                        categoryList.add(subCategory);
-                    }
+                for (Category subCategory : subCategories) {
+                    categoryList.add(subCategory);
+                }
 
-                for(Category toReturnable : categoryList) {
+                for (Category toReturnable : categoryList) {
                     List<CategoryMetaDataFieldValues> toReturnableFV = categoryMetadataFieldValuesRepository.findByCategoryId(toReturnable.getCategoryId());
 
                     FilterCategoryModel filterCategoryModelObj = new FilterCategoryModel();
@@ -173,18 +171,17 @@ public class CategoryDaoService {
                 }
 
                 return filterCategoryModelList;
-            }
-            else {
+            } else {
                 categoryList.add(category);
 
                 List<Category> allParentCategoryList = categoryRepository.findAllParentCategoryWithSubCategoryId(category.getParentCategory().getCategoryId());
                 List<FilterCategoryModel> filterCategoryModelList = new ArrayList<>();
 
-                for(Category parentCategory : allParentCategoryList) {
+                for (Category parentCategory : allParentCategoryList) {
                     categoryList.add(parentCategory);
                 }
 
-                for(Category toReturnable : categoryList) {
+                for (Category toReturnable : categoryList) {
                     List<CategoryMetaDataFieldValues> toReturnableFV = categoryMetadataFieldValuesRepository.findByCategoryId(toReturnable.getCategoryId());
 
                     FilterCategoryModel filterCategoryModelObj = new FilterCategoryModel();
@@ -197,8 +194,7 @@ public class CategoryDaoService {
 
                 return filterCategoryModelList;
             }
-        }
-        else {
+        } else {
             throw new ResourceNotFoundException("Category not found with the ID " + categoryId + " ");
         }
     }
@@ -208,7 +204,7 @@ public class CategoryDaoService {
         List<Category> categoryList = categoryRepository.findRoot();
         List<FilterCategoryModel> filterCategoryModelList = new ArrayList<>();
 
-        for(Category toReturnable : categoryList) {
+        for (Category toReturnable : categoryList) {
             List<CategoryMetaDataFieldValues> toReturnableFV = categoryMetadataFieldValuesRepository.findByCategoryId(toReturnable.getCategoryId());
 
             FilterCategoryModel filterCategoryModelObj = new FilterCategoryModel();
@@ -225,32 +221,31 @@ public class CategoryDaoService {
     public List<Category> getAllSubCategoriesWithId(Long categoryId) {
         Optional<Category> categoryOptional = categoryRepository.findById(categoryId);
 
-        if(categoryOptional.isPresent()) {
+        if (categoryOptional.isPresent()) {
             return categoryRepository.getAllSubCategoriesWithId(categoryId);
-        }
-        else {
+        } else {
             throw new ResourceNotFoundException("Invalid category ID, no record found with the ID " + categoryId + " ");
         }
     }
 
     public List<CategoryViewModel> getAllFilterCategoryWithProducts(Long categoryId) {
         Optional<Category> categoryOptional = categoryRepository.findById(categoryId);
-        if(categoryOptional.isPresent()) {
+        if (categoryOptional.isPresent()) {
             Category category = categoryOptional.get();
             List<CategoryViewModel> categoryViewModelList = new ArrayList<>();
             List<Category> categoryList = new ArrayList<>();
 
 
-            if(category.getParentCategory() == null) {
+            if (category.getParentCategory() == null) {
                 System.out.println("called");
                 List<Category> allParentCategoryList = categoryRepository.getAllSubCategoriesWithId(category.getCategoryId());
 
-                for(Category parentCategory : allParentCategoryList) {
+                for (Category parentCategory : allParentCategoryList) {
                     categoryList.add(parentCategory);
                     System.out.println(parentCategory.getName());
                 }
 
-                for(Category toReturnable : categoryList) {
+                for (Category toReturnable : categoryList) {
                     List<CategoryMetaDataFieldValues> toReturnableFV = categoryMetadataFieldValuesRepository.findByCategoryId(toReturnable.getCategoryId());
                     List<String> allBrandName = productRepository.findAllBrandName(toReturnable.getCategoryId());
 
@@ -274,11 +269,10 @@ public class CategoryDaoService {
 
                 return categoryViewModelList;
 
-            }
-            else {
+            } else {
                 categoryList.add(category);
 
-                for(Category toReturnable : categoryList) {
+                for (Category toReturnable : categoryList) {
                     List<CategoryMetaDataFieldValues> toReturnableFV = categoryMetadataFieldValuesRepository.findByCategoryId(toReturnable.getCategoryId());
                     List<String> allBrandName = productRepository.findAllBrandName(category.getCategoryId());
 
@@ -294,8 +288,7 @@ public class CategoryDaoService {
 
                 return categoryViewModelList;
             }
-        }
-        else {
+        } else {
             throw new ResourceNotFoundException("Category not found with the ID " + categoryId + " ");
         }
     }

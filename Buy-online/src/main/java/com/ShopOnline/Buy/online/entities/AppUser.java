@@ -14,9 +14,10 @@ public class AppUser implements UserDetails {
     private String password;
     private Boolean isEnabled;
     private Boolean isNonLocked;
+    private Boolean isActive;
     private List<GrantedAuthorityImpl> grantedAuthorities;
 
-    public AppUser(Long userId, String name, String username, String password, Boolean isEnabled, Boolean isNonLocked, List<GrantedAuthorityImpl> grantedAuthorities) {
+    public AppUser(Long userId, String name, String username, String password, Boolean isEnabled, Boolean isNonLocked, Boolean isActive, List<GrantedAuthorityImpl> grantedAuthorities) {
         this.userId = userId;
         this.name = name;
         this.username = username;
@@ -24,6 +25,7 @@ public class AppUser implements UserDetails {
         this.isEnabled = isEnabled;
         this.isNonLocked = isNonLocked;
         this.grantedAuthorities = grantedAuthorities;
+        this.isActive = isActive;
     }
 
     @Override
@@ -59,6 +61,14 @@ public class AppUser implements UserDetails {
     @Override
     public boolean isEnabled() {
         return isEnabled;
+    }
+
+    public Boolean getActive() {
+        return isActive;
+    }
+
+    public void setActive(Boolean active) {
+        isActive = active;
     }
 
     public Long getUserId() {

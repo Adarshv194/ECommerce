@@ -49,7 +49,7 @@ public class UserDaoService {
                 User user = userOptional.get();
                 List<GrantedAuthorityImpl> authorities = new ArrayList<>();
                 user.getRoleList().forEach(role -> authorities.add(new GrantedAuthorityImpl(role.getAuthority())));
-                return new AppUser(user.getUserId(),user.getFirstName(),user.getUsername(),user.getPassword(),user.getEnabled(),user.getNonLocked(), authorities);
+                return new AppUser(user.getUserId(),user.getFirstName(),user.getUsername(),user.getPassword(),user.getEnabled(),user.getNonLocked(), user.getActive(), authorities);
             }
             else {
                 throw new UserNotFoundException("User not found, Invalid username");
@@ -116,7 +116,7 @@ public class UserDaoService {
                 if(userOptional.isPresent()) {
                     User user = userOptional.get();
                     user.setEnabled(true);
-                    user.setActive(false);
+                    user.setActive(true);
                     userRepository.save(user);
 
                     confirmationTokenRepository.deleteConfirmationToken(confirmToken);
@@ -227,7 +227,7 @@ public class UserDaoService {
             mailMessage.setFrom("adarshv193@gmail.com");
             mailMessage.setSubject("Registration successfull");
             mailMessage.setText("Hello seller, Thank your for choosing the shop " +
-                    "Your account has been registered successfully, please wait for some time" +
+                    "Your account has been registered successfully, please wait for some time " +
                     "So that your account can be verified and enabled by our team");
             emailSenderService.sendEmail(mailMessage);
 

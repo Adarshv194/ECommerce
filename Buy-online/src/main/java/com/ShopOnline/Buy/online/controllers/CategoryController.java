@@ -51,7 +51,7 @@ public class CategoryController {
     @GetMapping(value = "/get-all-categories")
     public MappingJacksonValue getAllCategory(@RequestHeader(defaultValue = "0") String page, @RequestHeader(defaultValue = "10") String size) {
 
-        SimpleBeanPropertyFilter filter1 = SimpleBeanPropertyFilter.filterOutAllExcept("name", "categoryId");
+        SimpleBeanPropertyFilter filter1 = SimpleBeanPropertyFilter.filterOutAllExcept("name", "categoryId","parentCategory");
 
         SimpleBeanPropertyFilter filter2 = SimpleBeanPropertyFilter.filterOutAllExcept("categoryMetaDataField","fieldvalues");
 

@@ -47,5 +47,5 @@ public class Bootstrap implements ApplicationRunner {
 
         roleRepository.save(customer);
         roleRepository.save(seller);
- */   }
+  */  }
 }

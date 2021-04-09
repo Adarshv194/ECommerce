@@ -1,6 +1,7 @@
 package com.ShopOnline.Buy.online.services;
 
 import com.ShopOnline.Buy.online.entities.User;
+import com.ShopOnline.Buy.online.exceptions.BadRequestException;
 import com.ShopOnline.Buy.online.exceptions.UserNotFoundException;
 import com.ShopOnline.Buy.online.repos.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,11 +25,15 @@ public class AccountUnlockService {
         if(userOptional.isPresent()) {
             User user = userOptional.get();
 
+            if(user.getNonLocked()) {
+                throw new BadRequestException("Your account is not locked, no need to request");
+            }
+
             SimpleMailMessage mailMessage = new SimpleMailMessage();
             mailMessage.setTo(user.getEmail());
             mailMessage.setFrom("adarshv193@gmail.com");
             mailMessage.setSubject("Unlock your account");
-            mailMessage.setText("To unlock your account , please click here :"
+            mailMessage.setText("To unlock your account , please click here : "
                     +"http://localhost:8080/do-unlock?username="+username);
 
             emailSenderService.sendEmail(mailMessage);

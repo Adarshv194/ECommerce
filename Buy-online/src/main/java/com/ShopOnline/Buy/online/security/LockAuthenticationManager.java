@@ -1,7 +1,9 @@
 package com.ShopOnline.Buy.online.security;
 
+import com.ShopOnline.Buy.online.entities.AppUser;
 import com.ShopOnline.Buy.online.entities.User;
 import com.ShopOnline.Buy.online.exceptions.UserNotFoundException;
+import com.ShopOnline.Buy.online.exceptions.UsernameNotFoundException;
 import com.ShopOnline.Buy.online.repos.UserRepository;
 import com.ShopOnline.Buy.online.services.EmailSenderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,8 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.authentication.event.AbstractAuthenticationEvent;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -24,9 +28,7 @@ public class LockAuthenticationManager implements ApplicationListener<AbstractAu
 
     @Override
     public void onApplicationEvent(AbstractAuthenticationEvent appEvent) {
-        if(appEvent instanceof AuthenticationSuccessEvent) {
-            AuthenticationSuccessEvent successEvent = (AuthenticationSuccessEvent) appEvent;
-        }
+        if(appEvent instanceof AuthenticationSuccessEvent) { }
 
         if(appEvent instanceof AuthenticationFailureBadCredentialsEvent) {
             AuthenticationFailureBadCredentialsEvent failureEvent = (AuthenticationFailureBadCredentialsEvent) appEvent;
@@ -44,7 +46,7 @@ public class LockAuthenticationManager implements ApplicationListener<AbstractAu
                     mailMessage.setFrom("adarshv193@gmail.com");
                     mailMessage.setSubject("Account Locked");
                     mailMessage.setText("Your account has been locked due to multiple incorrect password attempts " +
-                            "Go to this link to unlock your account"
+                            "Go to this link to unlock your account "
                             +"http://localhost:8080/user-account-unlock/{username}");
                     emailSenderService.sendEmail(mailMessage);
                 }
