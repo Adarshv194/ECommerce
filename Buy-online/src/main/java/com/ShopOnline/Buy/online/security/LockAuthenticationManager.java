@@ -14,6 +14,7 @@ import org.springframework.security.authentication.event.AuthenticationFailureBa
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -28,7 +29,25 @@ public class LockAuthenticationManager implements ApplicationListener<AbstractAu
 
     @Override
     public void onApplicationEvent(AbstractAuthenticationEvent appEvent) {
-        if(appEvent instanceof AuthenticationSuccessEvent) { }
+        if(appEvent instanceof AuthenticationSuccessEvent) {
+            System.out.println("Called");
+            AuthenticationSuccessEvent successEvent = (AuthenticationSuccessEvent) appEvent;
+            UserDetails userDetails = (UserDetails) successEvent.getAuthentication().getPrincipal();
+            String username = userDetails.getUsername();
+
+            if(!username.equals("live-test")) {
+                Optional<User> userOptional = userRepository.findByUsernameIgnoreCase(username);
+                if(userOptional.isPresent()) {
+                    User user = userOptional.get();
+                    user.setAttempts(0);
+
+                    userRepository.save(user);
+                }
+                else {
+                    throw new UserNotFoundException("Invalid user, searched with username " + username + " ");
+                }
+            }
+        }
 
         if(appEvent instanceof AuthenticationFailureBadCredentialsEvent) {
             AuthenticationFailureBadCredentialsEvent failureEvent = (AuthenticationFailureBadCredentialsEvent) appEvent;
@@ -51,6 +70,7 @@ public class LockAuthenticationManager implements ApplicationListener<AbstractAu
                     emailSenderService.sendEmail(mailMessage);
                 }
                 else {
+                    System.out.println("Called with " + user.getAttempts());
                     user.setAttempts(user.getAttempts() + 1);
                 }
 

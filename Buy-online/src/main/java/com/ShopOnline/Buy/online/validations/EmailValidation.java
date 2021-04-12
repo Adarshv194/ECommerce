@@ -14,8 +14,6 @@ public class EmailValidation implements ConstraintValidator<Email, String> {
         if(email == null) {
             return false;
         }
-        if(email.matches("^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"))
-            return true;
-        return false;
+       return email.matches("^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$");
     }
 }

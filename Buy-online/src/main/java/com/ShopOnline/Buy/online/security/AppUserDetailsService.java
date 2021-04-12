@@ -29,9 +29,9 @@ public class AppUserDetailsService implements UserDetailsService {
             AppUser appUser = userDaoService.loadUserByUsername(username);
             String appUsername = appUser.getUsername();
             User user = userRepository.findByUsernameIgnoreCase(appUsername).get();
-            user.setAttempts(0);
+/*            user.setAttempts(0);
 
-            userRepository.save(user);
+            userRepository.save(user);*/
 
             return appUser;
         }
