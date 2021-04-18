@@ -1,14 +1,18 @@
 package com.ShopOnline.Buy.online.entities.order;
 
 import com.ShopOnline.Buy.online.entities.Customer;
+import com.fasterxml.jackson.annotation.JsonFilter;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @Entity
-public class Order {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+@JsonFilter("consolidatedOrder")
+public class ConsolidatedOrder {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long orderId;
+    private Integer totalProductsOrdered;
     private Double amountPaid;
     private String paymentMethod;
     private String customerAddressCity;
@@ -17,6 +21,7 @@ public class Order {
     private String customerAddressLine;
     private String customerAddressZipCode;
     private String customerAddressLabel;
+    private String specialInformation;
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateCreated;
@@ -31,6 +36,14 @@ public class Order {
 
     public void setOrderId(Long orderId) {
         this.orderId = orderId;
+    }
+
+    public Integer getTotalProductsOrdered() {
+        return totalProductsOrdered;
+    }
+
+    public void setTotalProductsOrdered(Integer totalProductsOrdered) {
+        this.totalProductsOrdered = totalProductsOrdered;
     }
 
     public Double getAmountPaid() {
@@ -111,5 +124,13 @@ public class Order {
 
     public void setCustomer(Customer customer) {
         this.customer = customer;
+    }
+
+    public String getSpecialInformation() {
+        return specialInformation;
+    }
+
+    public void setSpecialInformation(String specialInformation) {
+        this.specialInformation = specialInformation;
     }
 }

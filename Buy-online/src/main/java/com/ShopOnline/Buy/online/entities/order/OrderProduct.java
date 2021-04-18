@@ -1,10 +1,12 @@
 package com.ShopOnline.Buy.online.entities.order;
 
 import com.ShopOnline.Buy.online.entities.product.ProductVariation;
+import com.fasterxml.jackson.annotation.JsonFilter;
 
 import javax.persistence.*;
 
 @Entity
+@JsonFilter("orderProduct")
 public class OrderProduct {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long orderProductId;
@@ -17,7 +19,7 @@ public class OrderProduct {
 
     @ManyToOne
     @JoinColumn(name = "orderId")
-    private Order order;
+    private ConsolidatedOrder consolidatedOrder;
 
     public Long getOrderProductId() {
         return orderProductId;
@@ -51,11 +53,11 @@ public class OrderProduct {
         this.productVariation = productVariation;
     }
 
-    public Order getOrder() {
-        return order;
+    public ConsolidatedOrder getConsolidatedOrder() {
+        return consolidatedOrder;
     }
 
-    public void setOrder(Order order) {
-        this.order = order;
+    public void setConsolidatedOrder(ConsolidatedOrder consolidatedOrder) {
+        this.consolidatedOrder = consolidatedOrder;
     }
 }

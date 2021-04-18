@@ -3,6 +3,7 @@ package com.ShopOnline.Buy.online.repos;
 import com.ShopOnline.Buy.online.entities.Customer;
 import com.ShopOnline.Buy.online.entities.order.Cart;
 import com.ShopOnline.Buy.online.entities.product.ProductVariation;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -23,4 +24,12 @@ public interface CartRepository extends CrudRepository<Cart, Long> {
     Optional<Cart> findByProductVariation(ProductVariation productVariation);
 
     List<Cart> findByCustomer(Customer customer);
+
+    @Modifying
+    @Query(value = "delete from cart where customer_id=:customerId",nativeQuery = true)
+    void deleteAllProducts(@Param("customerId") Long customerId);
+
+    @Modifying
+    @Query(value = "delete from cart where customer_id=:customerId and cart_id=:cartId",nativeQuery = true)
+    void deleteAllProductsByCustomerIdAndCartId(@Param("customerId") Long customerId, @Param("cartId") Long cartId);
 }

@@ -1,13 +1,16 @@
 package com.ShopOnline.Buy.online.entities.order;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
+
 import javax.persistence.*;
 
 @Entity
+@JsonFilter("orderStatus")
 public class OrderStatus {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long orderStatusId;
-    private String fromStatus;
-    private String toStatus;
+    private FromStatus fromStatus;
+    private ToStatus toStatus;
     private String transitionNotesComments;
 
     @OneToOne
@@ -22,19 +25,19 @@ public class OrderStatus {
         this.orderStatusId = orderStatusId;
     }
 
-    public String getFromStatus() {
+    public FromStatus getFromStatus() {
         return fromStatus;
     }
 
-    public void setFromStatus(String fromStatus) {
+    public void setFromStatus(FromStatus fromStatus) {
         this.fromStatus = fromStatus;
     }
 
-    public String getToStatus() {
+    public ToStatus getToStatus() {
         return toStatus;
     }
 
-    public void setToStatus(String toStatus) {
+    public void setToStatus(ToStatus toStatus) {
         this.toStatus = toStatus;
     }
 
