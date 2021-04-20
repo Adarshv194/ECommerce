@@ -1,12 +1,10 @@
-/*
 package com.ShopOnline.Buy.online.entities.product;
-*/
 
 import com.ShopOnline.Buy.online.entities.Customer;
 
 import javax.persistence.*;
 
-/*
+@Entity
 public class ProductReview {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long productReviewId;
@@ -18,8 +16,8 @@ public class ProductReview {
     private Customer customer;
 
     @OneToOne
-    @JoinColumn(name = "productId")
-    private Product product;
+    @JoinColumn(name = "productVariationId")
+    private ProductVariation productVariation;
 
     public Long getProductReviewId() {
         return productReviewId;
@@ -53,12 +51,11 @@ public class ProductReview {
         this.customer = customer;
     }
 
-    public Product getProduct() {
-        return product;
+    public ProductVariation getProductVariation() {
+        return productVariation;
     }
 
-    public void setProduct(Product product) {
-        this.product = product;
+    public void setProductVariation(ProductVariation productVariation) {
+        this.productVariation = productVariation;
     }
 }
-*/

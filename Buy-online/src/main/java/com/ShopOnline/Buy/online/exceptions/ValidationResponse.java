@@ -1,26 +1,17 @@
 package com.ShopOnline.Buy.online.exceptions;
 
-import org.springframework.http.HttpStatus;
-
 import java.util.Date;
+import java.util.Map;
 
-public class ExceptionResponse {
+public class ValidationResponse {
     private Date timeStamp;
-    private String message;
+    private Map<String, String> errors;
     private String details;
     private int status;
 
-    public int getStatus() {
-        return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
-    }
-
-    public ExceptionResponse(Date timeStamp, String message, String details, int status) {
+    public ValidationResponse(Date timeStamp, Map<String, String> errors, String details, int status) {
         this.timeStamp = timeStamp;
-        this.message = message;
+        this.errors = errors;
         this.details = details;
         this.status = status;
     }
@@ -33,12 +24,12 @@ public class ExceptionResponse {
         this.timeStamp = timeStamp;
     }
 
-    public String getMessage() {
-        return message;
+    public Map<String, String> getErrors() {
+        return errors;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setErrors(Map<String, String> errors) {
+        this.errors = errors;
     }
 
     public String getDetails() {
@@ -47,5 +38,13 @@ public class ExceptionResponse {
 
     public void setDetails(String details) {
         this.details = details;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
     }
 }
