@@ -57,7 +57,7 @@ public class CustomizedResponseEntityException {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public final ResponseEntity<Object> handleAllException(MethodArgumentNotValidException ex, WebRequest request) {
-        
+
         List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors();
 
         Map<String,String> errors = new LinkedHashMap<>();

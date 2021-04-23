@@ -526,6 +526,13 @@ public class OrderDaoService {
 
                     orderStatusRepository.save(orderStatus);
 
+                    if(toStatus.equals("ORDER_CONFIRMED")) {
+                        ProductVariation productVariation = orderProduct.getProductVariation();
+                        productVariation.setQuantityAvailable(productVariation.getQuantityAvailable() - 1);
+
+                        productVariationRepository.save(productVariation);
+                    }
+
                     return "Order status gets updated for the order product with id " + orderProductId + " by the seller";
                 }
                 catch (IllegalArgumentException e) {

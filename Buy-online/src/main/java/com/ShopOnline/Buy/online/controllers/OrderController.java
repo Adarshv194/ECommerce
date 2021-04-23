@@ -140,7 +140,7 @@ public class OrderController {
         SimpleBeanPropertyFilter filter2 = SimpleBeanPropertyFilter.filterOutAllExcept("orderProductId","productVariation","price","quantity");
 
         SimpleBeanPropertyFilter filter3 = SimpleBeanPropertyFilter.filterOutAllExcept("productVariationId","variantName","price",
-                "active","productAttributes");
+                "active","quantityAvailable","productAttributes");
 
         FilterProvider filters = new SimpleFilterProvider()
                 .addFilter("orderStatus",filter1)
